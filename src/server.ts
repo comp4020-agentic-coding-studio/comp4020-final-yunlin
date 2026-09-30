@@ -16,9 +16,34 @@ const MIME: Record<string, string> = {
   ".ico": "image/x-icon",
 };
 
-async function readBody(req: import("node:http").IncomingMessage): Promise<string> {
+// A URL-encoded 320-character colophon body never comes close to this — it's
+// a hard ceiling against a request that skips the form's own maxlength, not a
+// tuned limit. Checked as bytes arrive, not after the fact: buffering an
+// unbounded body into memory first (whatever a crafted Content-Length or a
+// chunked request without one claims) is itself the vulnerability on a
+// single-machine deploy with a tight memory ceiling.
+const MAX_REQUEST_BODY_BYTES = 16 * 1024;
+
+function declaredBodyTooLarge(req: import("node:http").IncomingMessage): boolean {
+  const declared = Number(req.headers["content-length"]);
+  return Number.isFinite(declared) && declared > MAX_REQUEST_BODY_BYTES;
+}
+
+// Only reached once the declared length (if any) already passed; still caps
+// the actual bytes read, since Content-Length is a client-supplied claim, not
+// a guarantee — a chunked request can omit it, or a client can send fewer or
+// more bytes than it declared.
+async function readBody(req: import("node:http").IncomingMessage): Promise<string | undefined> {
   const chunks: Buffer[] = [];
-  for await (const chunk of req) chunks.push(chunk as Buffer);
+  let total = 0;
+  for await (const chunk of req) {
+    total += (chunk as Buffer).length;
+    if (total > MAX_REQUEST_BODY_BYTES) {
+      req.destroy();
+      return undefined;
+    }
+    chunks.push(chunk as Buffer);
+  }
   return Buffer.concat(chunks).toString("utf8");
 }
 
@@ -35,7 +60,25 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.method === "POST" && url.pathname === "/colophons") {
+    if (declaredBodyTooLarge(req)) {
+      // Don't req.destroy() here: the client may still be mid-write of the
+      // oversized body it declared, and tearing the socket down immediately
+      // races that write into an ECONNRESET/EPIPE on the client's side before
+      // it ever reads this response. Draining (not buffering) the body lets
+      // the client finish its write and read a clean 413; Connection: close
+      // still closes the socket once that's done, so nothing lingers.
+      req.resume();
+      res.writeHead(413, { "Content-Type": "text/plain; charset=utf-8", Connection: "close" });
+      res.end("payload too large");
+      return;
+    }
+
     const raw = await readBody(req);
+    if (raw === undefined) {
+      res.writeHead(413, { "Content-Type": "text/plain; charset=utf-8" });
+      res.end("payload too large");
+      return;
+    }
     const params = new URLSearchParams(raw);
     const body = (params.get("body") ?? "").trim();
 
