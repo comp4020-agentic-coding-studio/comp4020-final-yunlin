@@ -2,59 +2,80 @@
 
 ## State
 
-Second run on this deliverable, 158h to cutoff at the start of the run
-(crit 8, "It's alive!" — proof of life was already shipped last run). This
-run stayed inside crit 8's own scope rather than jumping ahead to crit 9's
-real-time layer: the crit's own brief says real-time "can all wait," and
-`README.md`/`PROCESS.md` already argue "this week is the smallest version of
-the object itself" — building the broadcast layer now would have contradicted
-what this week's own shipped prose claims, not extended it. The previous
-now.md's "single most important next action" (build crit 9's real-time layer)
-was the wrong call for this run on that basis; crit 9's own brief hasn't been
-fetched yet and shouldn't be guessed at.
+Third run on this deliverable, 147h to cutoff at the start of the run. The
+prompt's course-source URL is still crit 8's own (`crits/08-its-alive.json`)
+— confirmed by fetching it fresh rather than trusting the previous hand-off's
+guess — so this run stayed inside crit 8's scope, same reasoning as the
+second run: real-time is explicitly crit 9's, not this week's.
 
-Instead, did a deepen-phase pass grounded in this repo's own harness rules
-(`CLAUDE.md`) and found two real bugs, both fixed, both tested, both verified
-against the built Docker image and the live Fly deployment:
+The second run's hand-off named the keyboard/resize/slow-connection/
+forced-colors checks as the next work. Keyboard and resize were actually
+already covered by the second run's own `agent-browser` pass (its `PROCESS.md`
+account just didn't label them as the HD-band trio explicitly). This run ran
+the two genuinely missing ones, both clean:
 
-- `--seal` (the "one accent, one meaning" rule) had drifted into three
-  unrelated places in `styles.css` — fixed, and `spec/accent.test.ts` now
-  greps every `var(--seal)` use so it can't silently recur.
-- `readBody` buffered an incoming POST with no size cap — a request skipping
-  the form's own `maxlength="320"` could exhaust memory on this app's 256MB
-  single-machine deploy. Fixed properly on the third attempt (see this
-  repo's own `memory/MEMORY.md` for why the first two attempts raced); now
-  covered by `spec/request-limits.test.ts` and confirmed live against
-  `https://comp4020-final-yunlin.fly.dev/` with a real oversized-body
-  request over TLS.
+- **Slow connection**: throttled to 400kbps/400ms via a raw CDP script
+  (`Network.emulateNetworkConditions`) against the built Docker image — full
+  page loaded in ~1.8s, form present, no errors.
+- **Forced-colors/prefers-contrast**: `Emulation.setEmulatedMedia` toggling
+  `forced-colors: active` showed the page correctly inherits system colours
+  (no `forced-color-adjust: none` opt-out anywhere); computed contrast ratios
+  for every colour pair in `styles.css` all clear WCAG AA (4.68–12.73:1), so
+  `prefers-contrast: more` having nothing to add is a clean result, not a gap.
 
-`PROCESS.md` is at 1087 words (ceiling 1100, real headroom this time, not the
-exact edge). `README.md` untouched this run, still ~564 words (target
-400–600). Pushed to `origin/main` and redeployed via `flyctl deploy
---remote-only --ha=false -a comp4020-final-yunlin`; live URL reverified
-after redeploy (persistence still works, oversized-body rejection confirmed
-live, app stayed healthy).
+Also ran a concurrent-write check on `addColophon` (10 genuinely parallel
+`curl` POSTs) — all 10 landed exactly once, no lost writes. Clean.
+
+Then found and fixed a real, severe bug by asking a new question: "what
+could a crafted request do" extended from the POST body (already checked
+twice) to the **Cookie header**. `seal=%` (invalid percent-encoding) crashed
+the whole Node process via an uncaught `decodeURIComponent` throw — no
+try/catch anywhere in the request path. Confirmed live: the container
+exited; the bug was already exposed on the live Fly deployment before this
+run started. Fixed
+([`6b5e6fb`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6b5e6fb)),
+covered by `spec/cookie-safety.test.ts` (confirmed it actually fails against
+the pre-fix code via `git stash`), verified against the built Docker image,
+**redeployed the same run** (didn't wait for a finishing run, since the app
+was already live-vulnerable), and reconfirmed clean against
+`https://comp4020-final-yunlin.fly.dev/` afterward. `PROCESS.md` updated to
+account for this (now ~1181 words — no enforced ceiling found in
+`scripts/check-evidence.ts`, this is just a self-set target from prior runs;
+didn't chase it below ~1180 since there's real substance to report).
+
+Grepped every other client-controlled input the request handler touches
+(`content-length`, the URL itself) for the same "what if this throws"
+question — both already safe (`Number()` never throws, `new URL()` doesn't
+throw on malformed percent-encoding). Checked `/public/` path traversal too:
+blocked by the URL parser's own dot-segment normalisation plus the MIME
+extension allowlist. This lens is now exhausted for this app.
+
+Repo-local `memory/MEMORY.md` and the global one both updated with the
+Cookie-header lesson, per the standing practice of keeping both in sync.
 
 ## What's not done yet
 
 - `reflections/crit-8.md` still doesn't exist — still deliberately deferred
-  to whichever run is called last for this crit's window, per the previous
-  run's reasoning (unchanged).
-- No real-time layer yet. Don't start it until a run actually fetches crit
-  9's own course-source URL and reads its brief — don't build from memory of
-  what "probably" comes next.
-- Haven't run the keyboard/resize/slow-connection HD-band trio, forced-colors
-  check, or a second-tab live-update check yet (the last one has nothing to
-  test until crit 9's broadcast layer exists anyway).
-- Word counts: re-measure `PROCESS.md` after any further edit — it's been
-  right at the edge twice now before trimming back with real margin both
-  times.
+  to whichever run is called last for this crit's window.
+- No real-time layer. Don't start it until a run fetches crit 9's own
+  course-source URL directly.
+- A second-tab live-update check has nothing to test yet (no broadcast
+  layer exists) — wait for crit 9.
+- Haven't yet checked: JS-disabled end-to-end (trivial here since the app
+  ships zero client-side `<script>` at all — the "must work with JS off"
+  rule in `CLAUDE.md` is satisfied by construction, but worth an explicit
+  `agent-browser` pass with script execution disabled if a future run wants
+  to close this out formally rather than by inspection).
 
 ## Single most important next action
 
-Whichever run reads this next: check whether the prompt's course-source URL
-is still crit 8's, or has moved to crit 9. If it's moved, fetch crit 9's own
-brief and build from that, not from this file's guess about what it asks.
-If it's still crit 8, the deepen-phase checks listed above (keyboard/resize/
-slow-connection, forced-colors) are the next real work; this crit's proof-of-
-life bar and its README argument are both already solid.
+Whichever run reads this next: fetch the prompt's course-source URL fresh
+before doing anything else — don't assume it's still crit 8 just because
+this file says so. If it's moved to crit 9, read that brief and build the
+real-time layer from it. If it's still crit 8, this crit's own bar (proof of
+life, README argument, harness rules) is solid and thoroughly checked at
+this point — the next fresh angle, if one is still needed, should come from
+a genuinely new question (not a re-verification of keyboard/resize/slow-
+connection/forced-colors/concurrency/crafted-header, all now closed clean
+or fixed), or it may be time to treat this deepen phase as dry for crit 8
+specifically and hold until crit 9's brief actually exists.

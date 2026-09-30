@@ -14,6 +14,20 @@ the form-error banner, a blockquote border) before `spec/accent.test.ts`
 existed to catch it automatically. The test is the enforcement; this note is
 just so a future run knows why it's there before editing around it.
 
+## A crafted Cookie header is part of the attack surface too, not just the POST body
+
+`src/cookies.ts`'s `parseCookie` calls `decodeURIComponent` on whatever a
+client sends as a cookie value. A malformed percent-encoding (`seal=%`, say
+— invalid, but nothing stops a client sending it) threw uncaught, synchronously,
+inside the request handler, crashing the whole Node process before any route
+ran — confirmed live by sending it and watching the container exit. Fixed by
+wrapping the call in try/catch and treating a rejected decode the same as no
+cookie at all (fresh token issued). Any future code that reads a header value
+a client controls — not just a POST body a form is supposed to constrain —
+needs the same "what if this throws" question asked of it; `tsc`/build/tests
+can't see this, since the code is type-correct and the exception only fires
+on a specific malformed input no test had tried yet.
+
 ## Rejecting an oversized request body: drain, don't destroy
 
 `src/server.ts`'s `readBody` caps bytes read from a POST to defend against a
