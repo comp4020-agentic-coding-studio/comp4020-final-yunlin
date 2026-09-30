@@ -2343,3 +2343,78 @@ verifying and shipping, not manufacturing one more find.
   the dev-process run hadn't already, but it's the same check, cheap, and
   worth doing on the first slice of every future deliverable, not only
   once something breaks.
+
+## Crit 8 additions (final project — Colophon)
+
+- **Rejecting an oversized request body by destroying the connection early
+  races a still-writing client into a raw connection error instead of the
+  intended clean response — draining the stream to its natural end while
+  discarding past the cap, rather than accumulating or destroying, removes
+  the race without giving up the memory-safety property.** Colophon's
+  `readBody` had no size cap at all at first — a request skipping the
+  form's own `maxlength="320"` could buffer an arbitrarily large body into
+  memory on a 256MB single-machine deploy, the same "check what a crafted
+  request could do at the API boundary" lesson already logged above for a
+  prior crit's booking endpoint. The first fix (`req.destroy()` once the
+  cap was crossed) and the second (resume-and-respond without destroying)
+  both looked correct and both passed `pnpm check` — until repeated runs
+  against the *built Docker image* (not the dev server) showed an
+  intermittent `EPIPE`/`TypeError: fetch failed` on the exact same
+  fetch-based test, roughly every second or third run. The race: a large
+  `fetch()`-driven body is still being written by the client's own
+  networking stack when the server ends the response and (in the
+  destroy case) tears down the socket, or (in the resume case) closes it
+  once draining finishes — either way, closing before the client's write
+  has actually completed can beat the client into an error before it ever
+  reads the response. The fix that held: never destroy or preemptively
+  close the connection; keep reading (and discarding, not accumulating)
+  chunks past the cap until the stream ends naturally, then respond. This
+  costs no memory (each discarded chunk is immediately GC-eligible) and
+  removes the race entirely, since the response is only sent once the
+  client's own write has actually finished; a stalled or endless malicious
+  body is bounded by Node's own default request timeout, not by this
+  function. Confirmed by running the regression test five times in a row
+  against the built image before trusting it — a single green run had
+  already been seen for each of the two broken attempts, so "it passed
+  once" was not enough evidence on its own for a fix touching connection
+  lifecycle timing; only repetition surfaced the flake. General lesson for
+  any future full-stack deliverable with a request-size cap or similar
+  early-rejection logic: prefer draining a stream to completion over
+  destroying or half-closing it early, and re-run any regression test for
+  a connection-timing fix several times against the *built* artifact
+  before considering it verified, not just once.
+- **The "one accent, one meaning" self-check (crit 7: `--seal` drifting
+  into an unrelated `.error` banner) recurred a second time, in a
+  different repo, confirming it as a standing pattern rather than a
+  one-off.** Colophon's own `CLAUDE.md` states the same rule for its own
+  `--seal`; a routine deepen-phase reread of `styles.css` (not prompted by
+  any specific suspicion) found it reused in three unrelated places — a
+  kicker line, a form-error banner, and a blockquote border — none of them
+  "this colophon is yours." Fixed, and this time closed with a permanent
+  grep-based test (`spec/accent.test.ts`) rather than just a patched line,
+  per this project's own stated practice that a found bug gets a new
+  `spec/` test, not just a fix. Worth treating this as a standing early
+  check — not just a thing to remember from one past incident — on any
+  future deliverable whose own harness states a similarly absolute
+  "this accent means exactly one thing" rule: grep for the custom
+  property directly, early, rather than waiting to stumble onto the drift.
+- **A previous run's own hand-off can name the wrong next action if it
+  points at a future crit's content before that crit's own brief has ever
+  been fetched, and following it can mean contradicting prose the current
+  week already shipped.** The run after Colophon's proof-of-life slice
+  named "build crit 9's real-time layer" as the single most important next
+  action — reasonable-sounding, since the schema was already shaped to
+  carry it, but wrong: crit 8's own fetched brief explicitly says
+  real-time "can all wait," and both `README.md` and `PROCESS.md` already
+  argued, in prose that shipped that same week, "this week is the smallest
+  version of the object itself." Building the broadcast layer before
+  crit 9's own brief had ever been fetched would have meant either
+  contradicting that shipped argument or rewriting it defensively — scope
+  creep dressed as initiative. Stayed inside the current crit's own fetched
+  brief instead and did a deepen-phase pass grounded in this repo's own
+  harness rules, which is where the two bugs above came from. General
+  lesson: treat a hand-off's "next action" as a hypothesis to check against
+  the *current* run's own fetched course-source, not an instruction to
+  execute blindly — especially on a multi-week deliverable where later
+  weeks' briefs don't exist yet as far as any run before their own cutoff
+  is concerned.
