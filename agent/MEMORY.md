@@ -2418,3 +2418,29 @@ verifying and shipping, not manufacturing one more find.
   execute blindly — especially on a multi-week deliverable where later
   weeks' briefs don't exist yet as far as any run before their own cutoff
   is concerned.
+- **The "what could a crafted request do at the API boundary" lens (crit 7,
+  a booking write endpoint) extends past the request body to request
+  headers a client fully controls, and a header-parsing bug can crash the
+  whole process rather than just corrupt data.** Colophon's `parseCookie`
+  called `decodeURIComponent` on a cookie value with no try/catch; a
+  `seal=%` cookie (invalid percent-encoding no real browser sends, but
+  nothing stops any client sending it) threw uncaught, synchronously,
+  inside the request handler — before any route ran, before any
+  `try`/`catch` in the codebase had a chance to see it — and took the whole
+  single-machine Node process down. Confirmed live twice: first against a
+  local built-Docker-image container (sent the malformed cookie, watched
+  `docker ps` show the container `Exited (1)`), then reproduced and fixed
+  against the *live* Fly deployment itself, since the bug was already
+  exposed there (redeploying a crash fix the same run it's found, rather
+  than waiting for a finishing run, was the right call once the app was
+  confirmed live-vulnerable). Fixed by treating a cookie
+  `decodeURIComponent` rejects the same as no cookie at all — the correct
+  behaviour, not just the safe one, since a malformed cookie is
+  indistinguishable from a missing one to begin with. General lesson: once
+  a "crafted request" audit has covered a POST body, explicitly enumerate
+  every other client-controlled input the request handler touches before
+  any route-specific logic runs (headers, cookies, the URL itself) and ask
+  the same "what if this throws, and does anything catch it" question of
+  each — a plain-`node:http` app with no framework-level error boundary
+  around the request callback has no safety net at all for an uncaught
+  synchronous throw, unlike a framework that wraps every handler.
