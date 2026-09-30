@@ -50,20 +50,41 @@ Two things got caught and fixed by checking rather than assuming:
   first asserted "yours" appeared somewhere in a 400-character slice after
   the marker text. It passed for the wrong reason once, then failed for the
   right reason on a second run, because "Add yours" (the compose heading)
-  falls inside that window too — a false match, not a real one. Fixed by
-  slicing out exactly the `<li>` the marker landed in instead of a fixed
-  character count, so the test can't pass by coincidentally finding
+  falls inside that window too. Fixed by slicing out exactly the `<li>` the
+  marker landed in, so the test can't pass by coincidentally finding
   unrelated text nearby.
 - `CLAUDE.md` ([`33ef6c8`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/33ef6c8))
   states "escape all stored text before templating" as a standing rule, not
-  just a thing I happened to do once, because every colophon body is a
-  stranger's own words, persisted forever, and re-rendered as HTML to every
-  future visitor — the one place in this app where getting it wrong is a
-  stored XSS hole, not a cosmetic bug.
+  just a thing I happened to do once: every colophon body is a stranger's
+  own words, persisted forever and re-rendered to every future visitor —
+  the one place here where getting it wrong is a stored XSS hole, not a
+  cosmetic bug.
 
-Both are the kind of thing a quick manual pass can miss: the first only
-shows up if you check what else the word "yours" appears near on the page,
-the second only matters once real strangers can write real text. I verified
+A second-run deepen pass found two more, both grounded in this repo's own
+harness rules rather than a generic bug hunt:
+
+- `CLAUDE.md` says `--seal` marks exactly one thing, "this colophon is
+  yours" — but `styles.css` also spent it on the kicker line, the form-error
+  banner and the readme's blockquote border
+  ([`6a3ecdf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6a3ecdf)).
+  Moved all three to `--ink`/`--ink-soft` and added a test that greps every
+  `var(--seal)` use, rather than trusting the rule's own wording — a prior
+  crit's identical drift went unnoticed for several runs.
+- `readBody` buffered an incoming POST with no size cap
+  ([`abd5dc4`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/abd5dc4)):
+  a request skipping the form's own `maxlength="320"` could send an
+  arbitrarily large body and exhaust memory on this single-machine deploy.
+  Confirmed live with raw sockets against the dev process and the built
+  Docker image, both with a declared `Content-Length` over budget and with
+  a chunked request declaring none. The first fix (`req.destroy()` right
+  after the 413) raced a still-writing client into a connection error
+  instead of a clean response, caught by `pnpm check`'s own test against
+  the built image.
+
+All four are the kind of thing a quick manual pass can miss: the seal check
+only shows up by rereading the whole stylesheet, not the markup a design
+argument is framed around; the body cap only matters once a crafted
+request, not the form, is asking. I verified
 the whole slice against the exact image `Dockerfile` builds — built it
 locally with `sudo docker build`, ran it with a `--tmpfs /data` the same way
 `.github/workflows/checks.yml` does, and ran `pnpm check` against that
@@ -79,18 +100,16 @@ keyboard-reachable and arrow-key scrollable, not just mouse-draggable.
 
 Plain `node:http` over a framework (Express, Hono, Astro) costs more
 hand-written routing and no middleware ecosystem, for a slice this size —
-four routes, no auth, no JSON API — that isn't much. What it buys is
-directness: every request's path from cookie to database to rendered HTML
-is one file, `src/server.ts`, readable start to end, which matters more
-than middleware convenience while the whole shape of the app is still
-being decided. `node:sqlite` over `better-sqlite3` (used on an earlier crit
-in this same course) costs the newer, less-battle-tested API; it buys no
-native module to compile in the Docker image at all, which is a real
-simplification against the 256MB memory ceiling and the one-machine
-constraint this repo runs under. Neither choice is final — if the real-time
-layer next week needs more than an `EventSource` and a `node:sqlite` poll
-can comfortably give, that trade-off gets revisited and the reasoning
-recorded here, not silently abandoned.
+four routes, no auth, no JSON API — that isn't much. It buys directness:
+every request's path from cookie to database to rendered HTML is one file,
+readable start to end, which matters more than middleware convenience while
+the app's shape is still being decided. `node:sqlite` over `better-sqlite3`
+(used on an earlier crit) costs a newer, less-battle-tested API; it buys no
+native module to compile in Docker, a real simplification against the
+256MB/one-machine constraint this repo runs under. Neither choice is
+final — if next week's real-time layer needs more than an `EventSource` and
+a `node:sqlite` poll can give, that trade-off gets revisited and recorded
+here, not silently abandoned.
 
 ## What's next
 
