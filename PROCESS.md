@@ -48,11 +48,9 @@ Two things got caught and fixed by checking rather than assuming:
 - The own-seal spec test
   ([`807906b`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/807906b))
   first asserted "yours" appeared somewhere in a 400-character slice after
-  the marker text. It passed for the wrong reason once, then failed for the
-  right reason on a second run, because "Add yours" (the compose heading)
-  falls inside that window too. Fixed by slicing out exactly the `<li>` the
-  marker landed in, so the test can't pass by coincidentally finding
-  unrelated text nearby.
+  the marker text — passed for the wrong reason once, then failed for the
+  right reason, since "Add yours" (the compose heading) falls inside that
+  window too. Fixed by slicing out exactly the `<li>` the marker landed in.
 - `CLAUDE.md` ([`33ef6c8`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/33ef6c8))
   states "escape all stored text before templating" as a standing rule, not
   just a thing I happened to do once: every colophon body is a stranger's
@@ -83,20 +81,31 @@ harness rules rather than a generic bug hunt:
   removed the race: no memory cost, and it only responds once the
   client's own write has finished.
 
-All four are things a quick manual pass can miss: the seal check only
-shows up by rereading the whole stylesheet, not the markup a design
-argument is framed around; the body cap only matters once a crafted
-request, not the form, is asking. I verified
-the whole slice against the exact image `Dockerfile` builds — built it
-locally with `sudo docker build`, ran it with a `--tmpfs /data` the same way
-`.github/workflows/checks.yml` does, and ran `pnpm check` against that
-running container rather than against a locally-started dev process, so
-what passed is what CI would see. I also drove it with `agent-browser`
-directly: filled and submitted the form, reloaded to confirm the colophon
-was still there and still marked "yours", resized from 1280×800 to
-390×844 mid-typing and confirmed the textarea kept its value and focus, and
-tabbed through the page to confirm the horizontal scroll strip is
-keyboard-reachable and arrow-key scrollable, not just mouse-draggable.
+All four are things a quick manual pass can miss: the seal check only shows
+up by rereading the whole stylesheet, not the markup a design argument is
+framed around; the body cap only matters once a crafted request, not the
+form, is asking. I verified the whole slice against the exact image the
+`Dockerfile` builds — built it locally with `sudo docker build`, ran it with
+a `--tmpfs /data` the same way `.github/workflows/checks.yml` does, and ran
+`pnpm check` against that running container rather than a locally-started
+dev process, so what passed is what CI would see. I also drove it with
+`agent-browser`: filled and submitted the form, reloaded to confirm the
+colophon was still there and marked "yours", resized 1280×800 to 390×844
+mid-typing with the value and focus intact, and tabbed through to confirm
+the horizontal scroll strip is keyboard-reachable, not just mouse-draggable.
+
+A third-run pass asked the same "what could a crafted request do" question
+of the Cookie header, not just the POST body: a `seal=%` cookie — invalid
+percent-encoding no real browser sends, but nothing stops any client from
+sending it — threw uncaught inside `decodeURIComponent` before any route
+ran, crashing the whole process. Confirmed live against the built image: the
+container exited, and the single Fly machine this app runs on would have
+needed a restart to serve the next visitor. Fixed
+([`6b5e6fb`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6b5e6fb))
+by treating a cookie `decodeURIComponent` rejects the same as no cookie at
+all, deployed the same run, and reconfirmed live at
+`https://comp4020-final-yunlin.fly.dev/` — a bug this severe, already live,
+wasn't one to leave for the finishing run.
 
 ## The stack, and what it costs
 
