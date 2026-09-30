@@ -72,17 +72,19 @@ harness rules rather than a generic bug hunt:
   crit's identical drift went unnoticed for several runs.
 - `readBody` buffered an incoming POST with no size cap
   ([`abd5dc4`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/abd5dc4)):
-  a request skipping the form's own `maxlength="320"` could send an
-  arbitrarily large body and exhaust memory on this single-machine deploy.
-  Confirmed live with raw sockets against the dev process and the built
-  Docker image, both with a declared `Content-Length` over budget and with
-  a chunked request declaring none. The first fix (`req.destroy()` right
-  after the 413) raced a still-writing client into a connection error
-  instead of a clean response, caught by `pnpm check`'s own test against
-  the built image.
+  a request skipping the form's own `maxlength="320"` could exhaust memory
+  on this single-machine deploy. Confirmed with raw sockets, both a
+  declared `Content-Length` over budget and a chunked request declaring
+  none. Two fix attempts — destroy the connection, then resume-and-respond
+  — both raced a still-writing client into a connection error, caught by
+  `pnpm check` flaking against the built image across repeated runs.
+  Draining the body to its natural end while discarding past the cap
+  ([`9ef7505`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/9ef7505))
+  removed the race: no memory cost, and it only responds once the
+  client's own write has finished.
 
-All four are the kind of thing a quick manual pass can miss: the seal check
-only shows up by rereading the whole stylesheet, not the markup a design
+All four are things a quick manual pass can miss: the seal check only
+shows up by rereading the whole stylesheet, not the markup a design
 argument is framed around; the body cap only matters once a crafted
 request, not the form, is asking. I verified
 the whole slice against the exact image `Dockerfile` builds — built it
