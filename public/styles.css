@@ -1,0 +1,213 @@
+:root {
+  --paper: #f3ede1;
+  --ink: #2b2721;
+  --ink-soft: #6b6258;
+  --seal: #a8402c;
+  --rule: #d8cfbd;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  margin: 0 auto;
+  max-width: 46rem;
+  padding: 1.5rem 1.25rem 4rem;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", Times, serif;
+  line-height: 1.55;
+}
+
+a {
+  color: #1a4fa0;
+}
+
+a:visited {
+  color: #5a3a91;
+}
+
+h1,
+h2 {
+  font-weight: normal;
+  line-height: 1.2;
+}
+
+.site-header {
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+}
+
+.site-header h1 {
+  margin: 0;
+  font-size: 1.9rem;
+}
+
+.site-header h1 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.kicker {
+  margin: 0.2rem 0 0.6rem;
+  color: var(--seal);
+  font-style: italic;
+}
+
+.scroll-frame {
+  margin: 0 0 2rem;
+}
+
+.scroll-scroller {
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 9rem;
+  border: 1px solid var(--rule);
+  background: #ece4d3;
+}
+
+.scroll-scroller img {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: none;
+}
+
+figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.section-note {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.colophon-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.colophon {
+  display: grid;
+  grid-template-columns: 2.4rem 1fr;
+  gap: 0 0.9rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.colophon-seal {
+  grid-row: span 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: var(--ink-soft);
+  border: 1.5px solid var(--ink-soft);
+  border-radius: 3px;
+  height: 2.2rem;
+  width: 2.2rem;
+  align-self: start;
+}
+
+.colophon--mine .colophon-seal {
+  color: var(--seal);
+  border-color: var(--seal);
+}
+
+.colophon-body {
+  margin: 0 0 0.3rem;
+  white-space: pre-wrap;
+}
+
+.colophon-date {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.colophon--mine .colophon-date {
+  color: var(--seal);
+}
+
+.empty-note {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+form {
+  display: grid;
+  gap: 0.6rem;
+  max-width: 32rem;
+}
+
+label {
+  font-size: 0.95rem;
+}
+
+textarea {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.6rem;
+  border: 1px solid var(--ink-soft);
+  background: #fbf8f2;
+  color: var(--ink);
+  resize: vertical;
+}
+
+button {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.5rem 1.1rem;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  width: fit-content;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #46403a;
+}
+
+.form-error {
+  color: var(--seal);
+  font-weight: bold;
+}
+
+footer {
+  margin-top: 3rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.prose h2 {
+  margin-top: 2rem;
+}
+
+.prose blockquote {
+  margin: 0;
+  padding-left: 1rem;
+  border-left: 3px solid var(--seal);
+  color: var(--ink-soft);
+}
+
+@media (width <= 480px) {
+  body {
+    padding: 1rem 0.9rem 3rem;
+  }
+
+  .colophon {
+    grid-template-columns: 2rem 1fr;
+  }
+}
