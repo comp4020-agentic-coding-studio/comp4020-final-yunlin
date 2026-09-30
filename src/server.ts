@@ -24,27 +24,28 @@ const MIME: Record<string, string> = {
 // single-machine deploy with a tight memory ceiling.
 const MAX_REQUEST_BODY_BYTES = 16 * 1024;
 
-function declaredBodyTooLarge(req: import("node:http").IncomingMessage): boolean {
-  const declared = Number(req.headers["content-length"]);
-  return Number.isFinite(declared) && declared > MAX_REQUEST_BODY_BYTES;
-}
-
-// Only reached once the declared length (if any) already passed; still caps
-// the actual bytes read, since Content-Length is a client-supplied claim, not
-// a guarantee — a chunked request can omit it, or a client can send fewer or
-// more bytes than it declared.
+// Once the cap is crossed, later chunks are read and discarded rather than
+// accumulated — costs no memory, since each one is immediately eligible for
+// GC — but the stream is still let run to its natural end before responding.
+// Destroying the connection early, tried first, raced a still-writing client
+// into a raw connection error instead of a clean 413: a declared
+// Content-Length is a promise the client already committed to keeping, and
+// only reading it out fully guarantees the client's own write has finished
+// before it goes to read our response. A stalled or genuinely enormous body
+// is bounded by Node's own default request timeout, not by this function.
 async function readBody(req: import("node:http").IncomingMessage): Promise<string | undefined> {
+  const declared = Number(req.headers["content-length"]);
+  let tooLarge = Number.isFinite(declared) && declared > MAX_REQUEST_BODY_BYTES;
+
   const chunks: Buffer[] = [];
   let total = 0;
   for await (const chunk of req) {
-    total += (chunk as Buffer).length;
-    if (total > MAX_REQUEST_BODY_BYTES) {
-      req.destroy();
-      return undefined;
-    }
-    chunks.push(chunk as Buffer);
+    const buf = chunk as Buffer;
+    total += buf.length;
+    if (total > MAX_REQUEST_BODY_BYTES) tooLarge = true;
+    if (!tooLarge) chunks.push(buf);
   }
-  return Buffer.concat(chunks).toString("utf8");
+  return tooLarge ? undefined : Buffer.concat(chunks).toString("utf8");
 }
 
 const server = createServer(async (req, res) => {
@@ -60,19 +61,6 @@ const server = createServer(async (req, res) => {
   }
 
   if (req.method === "POST" && url.pathname === "/colophons") {
-    if (declaredBodyTooLarge(req)) {
-      // Don't req.destroy() here: the client may still be mid-write of the
-      // oversized body it declared, and tearing the socket down immediately
-      // races that write into an ECONNRESET/EPIPE on the client's side before
-      // it ever reads this response. Draining (not buffering) the body lets
-      // the client finish its write and read a clean 413; Connection: close
-      // still closes the socket once that's done, so nothing lingers.
-      req.resume();
-      res.writeHead(413, { "Content-Type": "text/plain; charset=utf-8", Connection: "close" });
-      res.end("payload too large");
-      return;
-    }
-
     const raw = await readBody(req);
     if (raw === undefined) {
       res.writeHead(413, { "Content-Type": "text/plain; charset=utf-8" });
