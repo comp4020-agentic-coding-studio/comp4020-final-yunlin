@@ -1,9 +1,57 @@
-# Your app
+# Colophon
 
-<!-- TEMPLATE: this file is yours, and the deployed app publishes it in full at
-     /readme/, where visitors and markers read it. The final project brief says
-     what it covers. Replace everything in it, this comment included. -->
+A handscroll painting stays open on the page. Under it, in the order they were
+written, sit the notes strangers have left in its margin — one line each, no
+account, no name, nothing that can be edited or deleted once it's there. It is
+alive the way a scroll is alive: everyone who has ever unrolled it left
+something behind, and the next person can still find it.
 
-Images are committed to the repo and linked relatively ---
-`![alt](docs/before.png)` --- so they render on GitHub; making them resolve at
-`/readme/` too is your app's job.
+## What good means here
+
+Chinese handscrolls were never finished when the painter set the brush down.
+Later owners and admirers kept adding their own inscriptions and seals after
+the image, sheet by sheet, so that a scroll only a foot square in its painted
+part could grow twenty feet long from six centuries of appended commentary —
+the [Met's history of the format](https://www.metmuseum.org/essays/chinese-handscrolls)
+calls this "a continuous dialogue" between the work and everyone who has since
+sat with it. That is the shape of multi-user, real-time and persistent I
+wanted: not a feed, but one object that a small, unhurried stream of people
+add to, permanently, leaving a trace the next visitor can actually find.
+
+Three other things I read while deciding what small and good looks like here:
+
+- Robin Sloan's [_An app can be a home-cooked meal_](https://www.robinsloan.com/notes/home-cooked-app/)
+  argues the best case for a tiny app is never that it will grow, but that it
+  is finished, sovereign and answers only to the few people it was built for.
+  This app answers to whoever writes in the margin, not to a growth number.
+- [Hundred Rabbits](https://sourcehut.org/blog/2021-12-08-100-rabbits-interview/),
+  who build their own software from a sailboat, would rather have "a lesser
+  home-brewed tool tailored specifically to our own needs" than a better
+  generic one — the whole app is closer to a workshop tool built for one
+  particular painting than a platform built to hold any painting at all.
+- Bernie DeKoven's [_The Well-Played Game_](https://www.deepfun.com/fun-store/the-well-played-game/)
+  says a shared act is worth more for the quality of playing it together than
+  for any individual score — there is no score here, no likes, nothing to
+  win, only the quality of what gets left behind.
+
+## What I chose not to build
+
+No accounts, avatars or profiles — a visitor is only the anonymous seal their
+browser is given on first visit, the same way a real seal marks presence
+without disclosing a name. No editing or deleting a colophon once it's
+written: ink doesn't come back off the paper, and a length limit (320
+characters) is the constraint that keeps a visitor considering a line rather
+than typing a paragraph. No likes, no replies, no threading, no feed of other
+people's activity, no notifications. Real-time and a place to write down one
+decision about several people at once both belong to the next two crits, not
+this one; this week is the smallest version of the object itself.
+
+## What's enforced, what's judged
+
+`spec/` checks that a colophon written now is still there on the next
+request, that a visitor's own colophons are the ones marked as theirs (and
+nobody else's are), and that an empty or over-length line is rejected rather
+than silently corrupted. Whether the tone of what accumulates actually reads
+like a colophon — considered, brief, worth adding to a shared object — rather
+than chat is not something a test can check; that's for whoever reads the
+margin to judge.
