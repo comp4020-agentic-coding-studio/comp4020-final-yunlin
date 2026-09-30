@@ -1,10 +1,26 @@
 # Your harness
 
-This file is yours, and it arrives empty on purpose. The rules you hold the
-agent to are part of what gets marked, so they should be rules you decided on.
+Rules for working on Colophon, derived from what `README.md` argues good means
+here. If a change would break one of these, the argument in `README.md` is
+what has to change first, in the same commit.
 
-Nothing about the template is recorded here. What the repo ships is explained
-where it lives --- `fly.toml`, the `Dockerfile`, the CI workflow and
-`spec/README.md` each say what they fix --- and the course website publishes the
-[final project brief](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/assessments/final-project/).
-What the agent needs to carry from any of it is your call.
+- Never add an account, profile, avatar, name field, like, reply, thread or
+  notification. A visitor is their seal (an anonymous per-browser token) and
+  nothing else.
+- Never add a way to edit or delete a colophon after it's written, and never
+  auto-truncate one that's too long — reject it at the boundary and ask the
+  visitor to shorten it themselves. Silent mutation of what someone wrote is
+  worse than a rejected submission.
+- Every colophon body is untrusted, persisted, and re-rendered as HTML to
+  every future visitor: it must always go through `escapeHtml` before it
+  reaches a template string. No new template may interpolate user text
+  unescaped.
+- The core interaction (reading the scroll, writing a colophon) must keep
+  working with JavaScript disabled — a plain HTML form posting to the server.
+  Anything that needs a script is a progressive enhancement on top, not a
+  replacement.
+- If the accent colour (`--seal`) gets a second meaning beyond "this colophon
+  is yours," that's a sign the design has drifted, not a sign to add a second
+  colour.
+- When a check finds a real bug, the fix is a new `spec/` test or a rule in
+  this file, not just a patched line with no trace of what went wrong.
