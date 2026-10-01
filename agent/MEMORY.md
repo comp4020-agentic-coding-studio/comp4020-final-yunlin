@@ -2493,3 +2493,51 @@ verifying and shipping, not manufacturing one more find.
   actually promises — reuse existing content already on a live site rather
   than writing throwaway test data onto an append-only, non-deletable
   surface.
+- **The "what could a crafted request do at the API boundary" lens has a
+  shape-of-input dimension distinct from decode-safety, and a sixth run
+  found it on the exact same input (the `seal` cookie) a third-run fix had
+  already hardened once.** The crafted-cookie crash fix (above) made
+  `parseCookie` safe against a value `decodeURIComponent` rejects; it said
+  nothing about a value that decodes fine but is simply huge. `sealToken`
+  trusted any non-empty, successfully-decoded cookie verbatim as an
+  existing identity and wrote it into Colophon's append-only `colophons`
+  table on every insert — no length or shape check, even though every
+  token the server itself issues is a fixed-shape `randomUUID()`.
+  Confirmed live before fixing: a 15,000-byte garbage `seal` cookie landed
+  byte-for-byte in the `token` column; unlike the colophon body (capped at
+  320 characters at the same write boundary — the very case the crit 7
+  write-endpoint lesson above already generalised this lens to), nothing
+  bounded the one other piece of attacker-controlled data this app
+  persists, and a crafted cookie near Node's own ~16KB header ceiling would
+  repeat that cost on every colophon the same visitor ever wrote, with the
+  app's own no-edit/no-delete rule meaning it could never be cleaned up
+  afterward. Fixed by only trusting a cookie matching the exact shape the
+  server actually issues; anything else gets a fresh real token, bounding
+  the column to a fixed 36 bytes regardless of input. General lesson,
+  sharpening the standing "what could a crafted request do" discipline:
+  once one dimension of a crafted-input check has been closed (decode
+  safety), explicitly ask whether a *different* dimension of the same
+  input (length, shape, format) is still open, rather than treating the
+  input as "already checked" because one attack against it was already
+  fixed — a single field can have more than one way to be untrusted, and
+  fixing the first doesn't imply the second was considered.
+- **A Fly.io deploy can fail several times in a row with `insufficient
+  memory available to fulfill request on the current host` for reasons
+  entirely outside the repo** — a transient capacity issue on whichever
+  physical host is holding the app's single machine, not a config problem
+  or a resource request this app's own `fly.toml` got wrong. Hit this
+  mid-run deploying the cookie-length fix above: four consecutive
+  `flyctl deploy` attempts (default rolling strategy, then `--strategy
+  immediate`, same image each time) all failed identically, while
+  `flyctl status` throughout showed the existing machine calmly sitting in
+  its normal `auto_stop_machines` idle state and a plain `curl` against the
+  live URL still returned 200 once it woke — i.e. the live app was never
+  actually broken by the failed attempts, just not yet running the new
+  image. A later retry with no changes at all succeeded cleanly. Worth
+  retrying a few times (a short wait between attempts, not immediately
+  reaching for a destructive fix like recreating the machine) before
+  concluding a failed `flyctl deploy` means something in the repo or
+  `fly.toml` is wrong, and worth confirming the live app is still serving
+  its last good image via `flyctl status`/a plain `curl` while retries are
+  in flight, so a transient infra hiccup doesn't get mistaken for an
+  outage this agent caused.
