@@ -2,65 +2,70 @@
 
 ## State
 
-Fourth run on this deliverable, 140h to cutoff at the start of the run. The
+Fifth run on this deliverable, 134h to cutoff at the start of the run. The
 prompt's course-source URL is still crit 8's own (`crits/08-its-alive.json`)
-— fetched fresh, not assumed — so real-time still stays out of scope until a
-run fetches crit 9's brief directly. Working tree was clean and matched the
-third run's hand-off exactly; no code changes were needed this run.
+— fetched fresh — so real-time still stays out of scope until a run fetches
+crit 9's brief directly. Working tree matched the fourth run's hand-off
+exactly at the start.
 
-The third run's hand-off said this deepen phase might be dry for crit 8
-unless a genuinely new question turned up. Found one: every prior
-verification of "a trace that's still there when they come back" (the
-brief's own core claim) had only ever run against the CI-matching Docker
-container with `--tmpfs /data` — which is memory-backed and proves nothing
-about real persistence, since it's gone the instant that container stops.
-Closed it against the actual live deployment instead: with two colophons
-already on the live scroll from earlier proof-of-life checks (reused rather
-than writing new permanent content onto a site that can never edit or
-delete an entry), ran `flyctl machine restart` on the live Fly machine — a
-genuine Firecracker VM reboot, confirmed via `flyctl logs` (SIGINT, volume
-unmount, `reboot: Restarting system`, fresh boot), not just assumed from a
-clean exit. Both colophons were still there afterward. Also confirmed while
-reading those logs that the server's lack of a custom `SIGINT` handler
-doesn't matter here: every write is one synchronous `node:sqlite`
-statement, so no restart can ever catch a write mid-commit. Clean result,
-documented in `PROCESS.md`, both memory files.
+The fourth run's hand-off said every lens tried so far (keyboard/resize/
+slow-connection/forced-colors, concurrency on both write paths, the
+crafted-Cookie-header crash, the real-restart persistence check) was dry,
+and the next run should ask a genuinely new question. Found one: every
+prior check of "nothing written here can ever be removed" treated that as a
+security/content question (XSS, length, ownership), never a rendering one.
+`.colophon-body` had `white-space: pre-wrap` but no `overflow-wrap`, so a
+single unbroken word (well under the 320-char cap — a pasted URL, mashed
+keys, perfectly ordinary input) had nowhere to break: confirmed live before
+touching anything (`document.body.scrollWidth` 2203 vs `innerWidth` 1280,
+screenshotted), and because a colophon can never be edited or deleted, that
+one entry would have stayed broken for every future visitor forever. Fixed
+with `overflow-wrap: anywhere` ([`487d6bc`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/487d6bc)),
+confirmed live afterward at both marking viewports (`scrollWidth` back to
+736, matching the 46rem body width), added `spec/layout.test.ts` (greps the
+rule, same style as `spec/accent.test.ts`), logged in `PROCESS.md`
+([`008b6df`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/008b6df))
+and both memory files, and deployed the same run (this bug was already live
+and visitor-triggerable, same reasoning as the crafted-cookie crash fix two
+runs ago — not something to leave for the finishing run). Confirmed live:
+`curl`'d `https://comp4020-final-yunlin.fly.dev/public/styles.css` shows the
+fix is actually being served, and `/` and `/readme/` both still answer 200.
 
-Also formally closed the one item the third run's hand-off left
-explicitly open: confirmed live (`curl`, not just inspection) that neither
-`/` nor `/readme/` serves any `<script>` tag at all, so the "must work with
-JS off" rule is satisfied by construction with no further check needed.
+Also checked the adjacent "Zalgo text" risk (many combining marks stacked on
+one base character, also well under the length cap) live in a browser —
+Chromium already caps visible combining-mark stacking on its own, so this
+variant renders safely with no fix needed. A clean result, not a second bug;
+recorded in `memory/MEMORY.md` so a future run doesn't re-ask it.
 
-Re-ran `pnpm check` against a freshly built Docker image (`sudo docker
-build`, `--tmpfs /data`, matching `.github/workflows/checks.yml`) before
-and after — all 11 tests green throughout, nothing touched code-wise this
-run.
+`pnpm check` ran clean (12/12, up from 11) against the dev process, then
+again against a freshly built Docker image (`sudo docker build`, `--tmpfs
+/data`, matching `.github/workflows/checks.yml`) before any of this was
+trusted. All scratch servers, the scratch Docker container, and the
+agent-browser session were stopped/removed before finishing; `git status`
+is clean and pushed.
 
 ## What's not done yet
 
 - `reflections/crit-8.md` still doesn't exist — still deliberately deferred
-  to whichever run is called last for this crit's window.
-  `scripts/check-evidence.ts` requires one of `crit-8.md`/`crit-9.md`/
-  `crit-10.md` to exist, but `check:evidence` only runs in CI once the repo
-  goes public (`if: !github.event.repository.private`), which per this
-  crit's own brief text happens at this week's cutoff — so there's no
-  current CI pressure to write it early, and doing so before the finishing
-  run would contradict doctrine's own "write the reflection on your final
-  run" instruction.
+  to whichever run is called last for this crit's window (`scripts/check-
+  evidence.ts` only runs in CI once the repo goes public, which happens at
+  this week's cutoff per the brief, so there's no CI pressure to write it
+  early, and writing it before the final run would contradict doctrine's own
+  "write the reflection on your final run" instruction).
 - No real-time layer. Don't start it until a run fetches crit 9's own
-  course-source URL directly.
-- A second-tab live-update check has nothing to test yet (no broadcast
-  layer exists) — wait for crit 9.
+  course-source URL directly — the fourth run's hand-off already warned
+  against building this on spec, and that's still right.
 
 ## Single most important next action
 
 Whichever run reads this next: fetch the prompt's course-source URL fresh
-before doing anything else. If it's still crit 8, the deepen phase is now
-genuinely dry across every lens tried so far (keyboard/resize/slow-
-connection/forced-colors, concurrency on both write paths, the crafted-
-Cookie-header crash, and now the real-restart persistence check) — the
-next fresh angle, if the run isn't the one the prompt calls last, should be
-a question nobody's asked yet (not a re-verification of any of the above),
-or it may be time to hold until crit 9's brief exists or until the prompt
-calls this crit's window closed, at which point the finishing steps
-(reflection, final sweep, commit, confirm live) are what's left to do.
+before doing anything else. If it's still crit 8, the deepen phase has now
+survived two "declare it dry, then find one more thing" cycles (run 4:
+restart-persistence; run 5: the layout-overflow bug) — the next fresh
+angle, if the run isn't the one the prompt calls last, should keep trying a
+genuinely new question (not a re-verification of anything listed above or
+in `memory/MEMORY.md`) before assuming there's truly nothing left. If the
+prompt calls this crit's window closed, the finishing steps (reflection,
+final sweep across both marking viewports, commit, confirm live) are what's
+left — the repo going public and starting CI deploys for crit 9 isn't this
+agent's job to trigger, per doctrine.

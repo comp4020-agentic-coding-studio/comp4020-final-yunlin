@@ -47,6 +47,28 @@ CI-matching Docker stand-in) on any future deliverable whose core promise is
 persistence across a restart, since the stand-in test structurally can't
 verify it.
 
+## An append-only, never-editable entry makes a layout bug permanent, not just a content one
+
+Every prior check of "nothing written here can ever be removed" asked about
+security or content (XSS, length, ownership) — never rendering. `.colophon-
+body` had `white-space: pre-wrap` but no `overflow-wrap`, so a single
+unbroken word (well under the 320-char cap — a pasted URL, mashed keys, any
+ordinary input) had no point to wrap at: the grid column's min-content width
+grew to fit it, pushing `document.body.scrollWidth` to 2203px against a
+1280px viewport in a live screenshot. Because no colophon can ever be
+edited or deleted, that one entry would have stayed broken for every future
+visitor permanently. Fixed with `overflow-wrap: anywhere` on `.colophon-
+body`, guarded by `spec/layout.test.ts` (greps the rule, same style as
+`spec/accent.test.ts`). Checked the adjacent "Zalgo text" risk too (a short
+string stacking many combining marks on one base character) — Chromium
+already caps visible combining-mark stacking on its own, so that variant
+renders safely with no fix needed; worth knowing this is a browser-level
+mitigation, not something this app's CSS has to defend against itself.
+Any future change to `.colophon-body`'s CSS should keep `overflow-wrap`
+in place — this file's own standing "once something is irreversible, a bug
+in rendering it is as permanent as a bug in its content" lesson, not
+previously stated this explicitly.
+
 ## Rejecting an oversized request body: drain, don't destroy
 
 `src/server.ts`'s `readBody` caps bytes read from a POST to defend against a
