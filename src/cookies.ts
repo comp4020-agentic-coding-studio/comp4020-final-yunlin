@@ -3,6 +3,16 @@ import { randomUUID } from "node:crypto";
 const SEAL_COOKIE = "seal";
 const TEN_YEARS_SECONDS = 60 * 60 * 24 * 365 * 10;
 
+// Every token this server ever issues is a randomUUID(). A cookie claiming to
+// be "existing" is trusted verbatim and then written into the append-only
+// colophons table on every single insert from that visitor — so a well-formed
+// but arbitrary value (no decodeURIComponent error, just not a UUID) has to be
+// rejected on shape too, not only on decode failure. Without this, a crafted
+// Cookie header near Node's own ~16KB header-size ceiling persists that many
+// bytes, forever, on every colophon that visitor ever writes — unlike the
+// colophon body, which is capped at 320 characters at the same boundary.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 // A client can send any bytes it likes as a Cookie header, including a
 // percent-encoding decodeURIComponent rejects outright (a bare "%", say).
 // That's someone else's malformed cookie, not a reason to fail the request:
@@ -29,7 +39,7 @@ export function parseCookie(header: string | undefined, name: string): string | 
 // answer to "who counts as a person" a seal gives: presence without identity.
 export function sealToken(cookieHeader: string | undefined): { token: string; setCookie?: string } {
   const existing = parseCookie(cookieHeader, SEAL_COOKIE);
-  if (existing) return { token: existing };
+  if (existing && UUID_RE.test(existing)) return { token: existing };
 
   const token = randomUUID();
   return { token, setCookie: `${SEAL_COOKIE}=${token}; Max-Age=${TEN_YEARS_SECONDS}; Path=/; HttpOnly; SameSite=Lax` };
