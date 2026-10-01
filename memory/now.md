@@ -2,80 +2,65 @@
 
 ## State
 
-Third run on this deliverable, 147h to cutoff at the start of the run. The
+Fourth run on this deliverable, 140h to cutoff at the start of the run. The
 prompt's course-source URL is still crit 8's own (`crits/08-its-alive.json`)
-— confirmed by fetching it fresh rather than trusting the previous hand-off's
-guess — so this run stayed inside crit 8's scope, same reasoning as the
-second run: real-time is explicitly crit 9's, not this week's.
+— fetched fresh, not assumed — so real-time still stays out of scope until a
+run fetches crit 9's brief directly. Working tree was clean and matched the
+third run's hand-off exactly; no code changes were needed this run.
 
-The second run's hand-off named the keyboard/resize/slow-connection/
-forced-colors checks as the next work. Keyboard and resize were actually
-already covered by the second run's own `agent-browser` pass (its `PROCESS.md`
-account just didn't label them as the HD-band trio explicitly). This run ran
-the two genuinely missing ones, both clean:
+The third run's hand-off said this deepen phase might be dry for crit 8
+unless a genuinely new question turned up. Found one: every prior
+verification of "a trace that's still there when they come back" (the
+brief's own core claim) had only ever run against the CI-matching Docker
+container with `--tmpfs /data` — which is memory-backed and proves nothing
+about real persistence, since it's gone the instant that container stops.
+Closed it against the actual live deployment instead: with two colophons
+already on the live scroll from earlier proof-of-life checks (reused rather
+than writing new permanent content onto a site that can never edit or
+delete an entry), ran `flyctl machine restart` on the live Fly machine — a
+genuine Firecracker VM reboot, confirmed via `flyctl logs` (SIGINT, volume
+unmount, `reboot: Restarting system`, fresh boot), not just assumed from a
+clean exit. Both colophons were still there afterward. Also confirmed while
+reading those logs that the server's lack of a custom `SIGINT` handler
+doesn't matter here: every write is one synchronous `node:sqlite`
+statement, so no restart can ever catch a write mid-commit. Clean result,
+documented in `PROCESS.md`, both memory files.
 
-- **Slow connection**: throttled to 400kbps/400ms via a raw CDP script
-  (`Network.emulateNetworkConditions`) against the built Docker image — full
-  page loaded in ~1.8s, form present, no errors.
-- **Forced-colors/prefers-contrast**: `Emulation.setEmulatedMedia` toggling
-  `forced-colors: active` showed the page correctly inherits system colours
-  (no `forced-color-adjust: none` opt-out anywhere); computed contrast ratios
-  for every colour pair in `styles.css` all clear WCAG AA (4.68–12.73:1), so
-  `prefers-contrast: more` having nothing to add is a clean result, not a gap.
+Also formally closed the one item the third run's hand-off left
+explicitly open: confirmed live (`curl`, not just inspection) that neither
+`/` nor `/readme/` serves any `<script>` tag at all, so the "must work with
+JS off" rule is satisfied by construction with no further check needed.
 
-Also ran a concurrent-write check on `addColophon` (10 genuinely parallel
-`curl` POSTs) — all 10 landed exactly once, no lost writes. Clean.
-
-Then found and fixed a real, severe bug by asking a new question: "what
-could a crafted request do" extended from the POST body (already checked
-twice) to the **Cookie header**. `seal=%` (invalid percent-encoding) crashed
-the whole Node process via an uncaught `decodeURIComponent` throw — no
-try/catch anywhere in the request path. Confirmed live: the container
-exited; the bug was already exposed on the live Fly deployment before this
-run started. Fixed
-([`6b5e6fb`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6b5e6fb)),
-covered by `spec/cookie-safety.test.ts` (confirmed it actually fails against
-the pre-fix code via `git stash`), verified against the built Docker image,
-**redeployed the same run** (didn't wait for a finishing run, since the app
-was already live-vulnerable), and reconfirmed clean against
-`https://comp4020-final-yunlin.fly.dev/` afterward. `PROCESS.md` updated to
-account for this (now ~1181 words — no enforced ceiling found in
-`scripts/check-evidence.ts`, this is just a self-set target from prior runs;
-didn't chase it below ~1180 since there's real substance to report).
-
-Grepped every other client-controlled input the request handler touches
-(`content-length`, the URL itself) for the same "what if this throws"
-question — both already safe (`Number()` never throws, `new URL()` doesn't
-throw on malformed percent-encoding). Checked `/public/` path traversal too:
-blocked by the URL parser's own dot-segment normalisation plus the MIME
-extension allowlist. This lens is now exhausted for this app.
-
-Repo-local `memory/MEMORY.md` and the global one both updated with the
-Cookie-header lesson, per the standing practice of keeping both in sync.
+Re-ran `pnpm check` against a freshly built Docker image (`sudo docker
+build`, `--tmpfs /data`, matching `.github/workflows/checks.yml`) before
+and after — all 11 tests green throughout, nothing touched code-wise this
+run.
 
 ## What's not done yet
 
 - `reflections/crit-8.md` still doesn't exist — still deliberately deferred
   to whichever run is called last for this crit's window.
+  `scripts/check-evidence.ts` requires one of `crit-8.md`/`crit-9.md`/
+  `crit-10.md` to exist, but `check:evidence` only runs in CI once the repo
+  goes public (`if: !github.event.repository.private`), which per this
+  crit's own brief text happens at this week's cutoff — so there's no
+  current CI pressure to write it early, and doing so before the finishing
+  run would contradict doctrine's own "write the reflection on your final
+  run" instruction.
 - No real-time layer. Don't start it until a run fetches crit 9's own
   course-source URL directly.
 - A second-tab live-update check has nothing to test yet (no broadcast
   layer exists) — wait for crit 9.
-- Haven't yet checked: JS-disabled end-to-end (trivial here since the app
-  ships zero client-side `<script>` at all — the "must work with JS off"
-  rule in `CLAUDE.md` is satisfied by construction, but worth an explicit
-  `agent-browser` pass with script execution disabled if a future run wants
-  to close this out formally rather than by inspection).
 
 ## Single most important next action
 
 Whichever run reads this next: fetch the prompt's course-source URL fresh
-before doing anything else — don't assume it's still crit 8 just because
-this file says so. If it's moved to crit 9, read that brief and build the
-real-time layer from it. If it's still crit 8, this crit's own bar (proof of
-life, README argument, harness rules) is solid and thoroughly checked at
-this point — the next fresh angle, if one is still needed, should come from
-a genuinely new question (not a re-verification of keyboard/resize/slow-
-connection/forced-colors/concurrency/crafted-header, all now closed clean
-or fixed), or it may be time to treat this deepen phase as dry for crit 8
-specifically and hold until crit 9's brief actually exists.
+before doing anything else. If it's still crit 8, the deepen phase is now
+genuinely dry across every lens tried so far (keyboard/resize/slow-
+connection/forced-colors, concurrency on both write paths, the crafted-
+Cookie-header crash, and now the real-restart persistence check) — the
+next fresh angle, if the run isn't the one the prompt calls last, should be
+a question nobody's asked yet (not a re-verification of any of the above),
+or it may be time to hold until crit 9's brief exists or until the prompt
+calls this crit's window closed, at which point the finishing steps
+(reflection, final sweep, commit, confirm live) are what's left to do.

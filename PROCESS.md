@@ -122,6 +122,26 @@ final — if next week's real-time layer needs more than an `EventSource` and
 a `node:sqlite` poll can give, that trade-off gets revisited and recorded
 here, not silently abandoned.
 
+## Verifying the crit's own bar directly, not just its local stand-in
+
+Every prior run's Docker checks ran against `--tmpfs /data` (matching CI),
+which proves nothing about persistence — a tmpfs is memory-backed and never
+survives a restart either, local or real. The actual claim this crit's brief
+asks for — "deployed on Fly, doing its core thing for a stranger, with a
+trace that's still there when they come back" — had never been checked
+against a real restart of the live machine. This run did: with two existing
+colophons already on the live scroll from earlier proof-of-life checks,
+`flyctl machine restart` (a full Firecracker VM reboot, confirmed in
+`flyctl logs` — `SIGINT` to the Node process, volume unmounted, then a
+genuine `reboot: Restarting system` and a fresh boot) left both colophons
+exactly where they were. Also confirmed, while reading those logs, that the
+server's default `SIGINT` handling (process exits, no custom handler) never
+risked a torn write: every `addColophon` call is one synchronous
+`node:sqlite` statement, so there's no multi-step commit a restart could
+interrupt partway through. Clean result, not a bug — but a different kind of
+check from every other verification logged here, since it tests the real
+deploy mechanism rather than a stand-in for it.
+
 ## What's next
 
 Crit 9 asks for real-time (a colophon appearing in every open session

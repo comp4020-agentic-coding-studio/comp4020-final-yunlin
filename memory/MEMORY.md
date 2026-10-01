@@ -28,6 +28,25 @@ needs the same "what if this throws" question asked of it; `tsc`/build/tests
 can't see this, since the code is type-correct and the exception only fires
 on a specific malformed input no test had tried yet.
 
+## The CI Docker check proves the app works, not that data survives a restart
+
+`--tmpfs /data` (matching `.github/workflows/checks.yml`) is memory-backed
+and gone the moment that container stops — a clean `pnpm check` run against
+it says nothing about whether a colophon actually survives the one thing
+the brief asks for ("a trace that's still there when they come back"). The
+real test needed a real restart of the live Fly machine: with two existing
+colophons already on the live scroll, `flyctl machine restart
+<id> -a comp4020-final-yunlin` (a full Firecracker reboot, confirmed via
+`flyctl logs` — `SIGINT`, volume unmount, a genuine `reboot: Restarting
+system`, fresh boot) left both exactly where they were. Also checked while
+reading those logs: the server has no custom `SIGINT` handler, but every
+write is one synchronous `node:sqlite` statement, so there's no multi-step
+commit a restart could ever catch mid-flight. Clean result — worth doing
+this specific check (a real platform restart on the live deploy, not the
+CI-matching Docker stand-in) on any future deliverable whose core promise is
+persistence across a restart, since the stand-in test structurally can't
+verify it.
+
 ## Rejecting an oversized request body: drain, don't destroy
 
 `src/server.ts`'s `readBody` caps bytes read from a POST to defend against a
