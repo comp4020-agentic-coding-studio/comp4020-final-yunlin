@@ -69,6 +69,27 @@ in place — this file's own standing "once something is irreversible, a bug
 in rendering it is as permanent as a bug in its content" lesson, not
 previously stated this explicitly.
 
+## A trusted cookie value needs a shape check too, not just a decode-safety one
+
+`src/cookies.ts`'s `sealToken` trusted any non-empty, successfully-decoded
+cookie value as an existing identity and wrote it verbatim into the
+append-only `colophons` table on every insert from that visitor — no length
+or format check, even though every token this server ever issues is a fixed-
+shape `randomUUID()`. Confirmed live before fixing: a 15,000-byte garbage
+`seal` cookie landed byte-for-byte in the `token` column; unlike the
+colophon body (capped at 320 characters at the same write boundary), nothing
+bounded the one other piece of attacker-controlled data this app persists,
+and a crafted cookie near Node's own ~16KB header ceiling would repeat that
+cost on every colophon that visitor ever wrote, forever, with no way to undo
+it. Fixed by only trusting a cookie matching the UUID shape this server
+actually issues (`UUID_RE` in `src/cookies.ts`); anything else gets a fresh
+real token, bounding the column to 36 bytes regardless of input. Guarded by
+a new test in `spec/cookie-safety.test.ts` alongside the existing malformed-
+cookie-crash one — both ask the same "what could a crafted Cookie header do"
+question, one about decode safety, one about shape/length. Any future code
+that adds another cookie this server reads needs the same shape check from
+the start, not just a try/catch around the decode.
+
 ## Rejecting an oversized request body: drain, don't destroy
 
 `src/server.ts`'s `readBody` caps bytes read from a POST to defend against a
