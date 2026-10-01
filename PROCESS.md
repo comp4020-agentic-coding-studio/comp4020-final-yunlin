@@ -142,6 +142,26 @@ interrupt partway through. Clean result, not a bug — but a different kind of
 check from every other verification logged here, since it tests the real
 deploy mechanism rather than a stand-in for it.
 
+## A permanent entry means a permanent layout bug too, not just a content one
+
+A fifth-run deepen pass asked a question none of the prior ones had: every
+check so far treated "a colophon can never be edited or deleted" as a
+security/content question (XSS, length, ownership) — never as a rendering
+one. `.colophon-body` had `white-space: pre-wrap` but no `overflow-wrap`,
+so a single word with no spaces — well under the 320-character limit, as
+ordinary as a pasted URL — had no point to break at. Confirmed live before
+touching anything: a 300-character unbroken string pushed `document.body
+.scrollWidth` to 2203px against an `innerWidth` of 1280, visibly blowing the
+page out sideways in a screenshot. Because nothing can ever remove a
+colophon, that one entry would have stayed broken for every future visitor,
+forever. Fixed with `overflow-wrap: anywhere`
+([`487d6bc`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/487d6bc)) —
+confirmed live afterward (`scrollWidth` back to 736, matching the intended
+46rem body width) at both the desktop and 390×844 marking viewports — and
+added a grep-based regression test (`spec/layout.test.ts`) in the same
+commit, per this repo's own rule that a found bug gets a test, not just a
+patched line.
+
 ## What's next
 
 Crit 9 asks for real-time (a colophon appearing in every open session
