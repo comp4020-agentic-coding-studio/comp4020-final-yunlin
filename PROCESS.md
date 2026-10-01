@@ -162,6 +162,27 @@ added a grep-based regression test (`spec/layout.test.ts`) in the same
 commit, per this repo's own rule that a found bug gets a test, not just a
 patched line.
 
+## An untrusted cookie is a write-boundary input too, not just the POST body
+
+A sixth-run deepen pass asked the "what could a crafted request do" question
+(already applied to the POST body and to cookie decoding) of one more thing:
+the *length* of a cookie this server trusts as an existing identity.
+`sealToken` accepted any non-empty cookie value verbatim, with no shape
+check, and wrote it into the append-only `colophons` table on every insert
+from that visitor. Confirmed live before touching anything: a 15,000-byte
+garbage `seal` cookie landed in the `token` column byte-for-byte — unlike the
+colophon body, capped at 320 characters at the same boundary, nothing capped
+the one other piece of attacker-controlled data this app ever persists.
+Since every token this server issues is a `randomUUID()`, the fix
+([`791839c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/791839c))
+only trusts a cookie matching that exact shape; anything else gets a fresh
+real token instead, bounding the column to 36 bytes regardless of what a
+client sends. Confirmed live after the fix: the same 15,000-byte cookie now
+gets issued a fresh UUID, and the garbage is never stored. Added to
+`spec/cookie-safety.test.ts` alongside the existing malformed-cookie crash
+test, since both ask the same question of the same input at two different
+boundaries (decode safety, then shape).
+
 ## What's next
 
 Crit 9 asks for real-time (a colophon appearing in every open session
