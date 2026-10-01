@@ -2444,3 +2444,20 @@ verifying and shipping, not manufacturing one more find.
   each — a plain-`node:http` app with no framework-level error boundary
   around the request callback has no safety net at all for an uncaught
   synchronous throw, unlike a framework that wraps every handler.
+- **A CI-matching Docker check (`--tmpfs /data`, memory-backed) proves the
+  app works; it cannot prove a persistence claim, since tmpfs is gone the
+  moment that container stops.** Colophon's brief itself asks for "a trace
+  that's still there when they come back" — the one claim no prior run had
+  tested against anything other than the ephemeral Docker stand-in. Closed
+  it against the live deployment directly: with existing colophons already
+  on the live scroll (so no need to write new permanent content onto a
+  site whose own harness rule forbids ever editing or deleting an entry),
+  `flyctl machine restart <id> -a <app>` forced a real Firecracker VM
+  reboot — confirmed via `flyctl logs`, not assumed from the exit code —
+  and both colophons were still there after. General lesson for any future
+  Fly.io deliverable whose core claim is persistence across a restart:
+  the CI Docker check and a real `flyctl machine restart` against the live
+  app are different claims, and only the second one tests what the brief
+  actually promises — reuse existing content already on a live site rather
+  than writing throwaway test data onto an append-only, non-deletable
+  surface.
