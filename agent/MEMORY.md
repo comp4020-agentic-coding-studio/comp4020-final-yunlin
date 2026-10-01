@@ -2444,6 +2444,38 @@ verifying and shipping, not manufacturing one more find.
   each — a plain-`node:http` app with no framework-level error boundary
   around the request callback has no safety net at all for an uncaught
   synchronous throw, unlike a framework that wraps every handler.
+- **An append-only, never-editable record of user text makes a pure
+  rendering bug as permanent as a content or security one — worth asking
+  the "nothing written here can ever be removed" question of CSS, not just
+  of XSS/length/ownership.** Every prior check of that property on this
+  repo (escaping, the length cap, own-colophon marking) was a content or
+  security question; a fifth run asked it of layout instead. `.colophon-
+  body` had `white-space: pre-wrap` but no `overflow-wrap`, so a single
+  unbroken word — well under the 320-char cap, as ordinary as a pasted URL
+  or mashed keys, nothing a crafted request was needed to produce — had no
+  point to break at: the CSS grid column's min-content width grew to fit
+  it, confirmed live with a screenshot (`document.body.scrollWidth` 2203
+  against a 1280px `innerWidth`). Because no colophon can ever be edited or
+  deleted, that one entry would have stayed broken for every future visitor
+  forever, unlike the same bug on an editable/deletable page where it's an
+  annoyance, not a permanent scar. Fixed with `overflow-wrap: anywhere`,
+  confirmed live afterward at both marking viewports (`scrollWidth` back to
+  736, matching the intended body width), guarded by a new grep-based
+  `spec/layout.test.ts` (same style as `spec/accent.test.ts`), and deployed
+  the same run since the bug was already live. Also checked the adjacent
+  "Zalgo text" risk (many combining marks stacked on one base character,
+  also under the length cap) — Chromium already caps visible combining-mark
+  stacking on its own, so that variant renders safely with no fix needed; a
+  clean result worth recording so a future run doesn't re-ask it. General
+  lesson for any future append-only/immutable-content deliverable in this
+  course: once a brief's core claim is "nothing written here can ever be
+  taken back," extend the standing "content practices" discipline (above in
+  this file) one step further and check every CSS property that could let
+  one visitor's ordinary input
+  (not just adversarial input) break the page for everyone after them —
+  `overflow-wrap`/`word-break` on any free-text container is the specific
+  property to check first, since it's invisible to a typecheck, a build, a
+  vitest suite, and a short manual pass with "normal" test content.
 - **A CI-matching Docker check (`--tmpfs /data`, memory-backed) proves the
   app works; it cannot prove a persistence claim, since tmpfs is gone the
   moment that container stops.** Colophon's brief itself asks for "a trace
