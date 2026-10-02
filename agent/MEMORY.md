@@ -2521,6 +2521,26 @@ verifying and shipping, not manufacturing one more find.
   input as "already checked" because one attack against it was already
   fixed — a single field can have more than one way to be untrusted, and
   fixing the first doesn't imply the second was considered.
+- **The standing "what could a crafted request do at the API boundary" lens
+  extends to the static-file route, and it's worth confirming the fix is
+  "already true" rather than skipping the check because the reasoning looks
+  airtight.** A seventh run asked this of `GET /public/*` in `src/server.ts`
+  for the first time — every prior check on this repo had pointed the lens
+  at the POST body or the Cookie header. The route reads `.${url.pathname}`
+  straight off disk, gated only by `startsWith("/public/")`; the reasoning
+  that WHATWG URL parsing collapses dot segments (including percent-encoded
+  `%2e` forms) before that check runs looked sound, but was confirmed live
+  anyway — plain, percent-encoded, double-percent-encoded, and backslash
+  traversal attempts all 404'd against a running dev server, with no
+  `..` surviving to reach the filesystem read. A clean result, not a bug:
+  the route was already safe by construction (using the URL class rather
+  than manual path joining), but it had never been tested, only assumed.
+  Locked in with a permanent regression test anyway, since a future refactor
+  of the route could lose the property silently with nothing to catch it.
+  Worth this same live check — not just the reasoning — on any future
+  deliverable's static-asset route, once the write-endpoint-shaped checks
+  are exhausted: a route that merely *serves* files is as much an API
+  boundary as one that writes to a database.
 - **A Fly.io deploy can fail several times in a row with `insufficient
   memory available to fulfill request on the current host` for reasons
   entirely outside the repo** — a transient capacity issue on whichever
