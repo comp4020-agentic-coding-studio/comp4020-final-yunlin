@@ -104,3 +104,20 @@ write has actually finished. Any future change to this function should keep
 that shape — draining to completion is what makes the response race-free,
 not the cap itself. Confirmed clean across five repeated `pnpm check` runs
 against the built Docker image before trusting it.
+
+## The static-file route is safe by construction, not by luck — confirmed, not just reasoned
+
+Every prior "what could a crafted request do at the API boundary" check
+(above) was about the POST body or the Cookie header; this run asked it of
+`GET /public/*` in `src/server.ts`, which reads `.${url.pathname}` straight
+off disk, gated only by `startsWith("/public/")`. Confirmed live rather than
+trusting the reasoning that WHATWG URL parsing collapses dot segments:
+plain (`/public/../README.md`), percent-encoded, double-percent-encoded, and
+backslash-form traversal attempts all 404, because `new URL(...)` removes
+every dot segment (it recognises percent-encoded `%2e`/`%2E` forms too, per
+spec) before the route's own prefix check ever runs — a `..` can't survive
+to reach the filesystem read. Clean result, not a bug, but locked in with
+`spec/static-files.test.ts` (same style as the cookie/body regression
+tests) rather than left as an untested assumption, since a future refactor
+of this route (e.g. swapping the URL class for manual string splitting)
+could easily lose this property silently.
