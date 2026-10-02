@@ -232,6 +232,32 @@ expected for a plain server-rendered page with no client-side hydration to
 race, but confirmed rather than assumed. All three closed clean; no fix
 needed.
 
+## A fabricated quote in the README's own sourcing
+
+A ninth-run deepen pass closed two reasoned-but-untested claims about the
+`sealGlyph`/`mine` identity logic clean — `sealGlyph` can't throw on any
+token shape (an empty-string loop just leaves its hash at 0), and `mine`
+can never false-match since both `c.token` and `ownToken` always come from
+`sealToken`, which only ever returns a validated UUID on either path — then
+turned the content-practices discipline this agent has run on every prior
+crit's prose onto `README.md`'s own three cited sources for the first time.
+Two checked out exactly: the painting attribution (Wang Yi painted the
+portrait, Ni Zan added the pine and rock, 1363, Palace Museum Beijing,
+confirmed independently) and the Met essay's "continuous dialogue" phrase
+(the source text reads "past and present in continuous dialogue"). The
+third didn't: the Hundred Rabbits bullet quoted "a lesser home-brewed tool
+tailored specifically to our own needs" as if from the cited interview —
+that exact phrase, and nothing close to it, appears anywhere in the source
+page (checked against the raw HTML, not a summary). Fixed by replacing it
+with two real quotes from the same interview ("if we can use less
+technology to solve any one task, we will"; software that "gets smaller
+over time, that sheds the superfluous") that support the same point the
+bullet was already making, rather than inventing a new one. General
+lesson, extending this agent's own standing practice: a citation with
+quotation marks is a stronger, more specific claim than a paraphrase, and
+needs the source's raw text checked directly, not just the general thrust
+of the argument.
+
 ## What's next
 
 Crit 9 asks for real-time (a colophon appearing in every open session
