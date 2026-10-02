@@ -200,6 +200,38 @@ clean result, not a bug, but worth locking in as
 a regression test, not just a reasoned-through assumption, against whatever a
 future refactor of that route does.
 
+## Concurrent writes and the artefact's HD-band checks, both closed clean
+
+An eighth-run deepen pass tried two angles crit 7's own write-endpoint
+lessons name directly but this repo had never run: whether `addColophon`
+holds up under genuinely concurrent requests, and the keyboard/resize/
+slow-connection trio the course's artefact criterion names by example.
+
+`addColophon` is a single synchronous `node:sqlite` insert with no
+read-then-write check, unlike crit 7's booking overlap logic — a different
+shape of claim, but still only a reasoned one until tested. Fired 40 real
+concurrent `curl` POSTs (backgrounded shell processes, not sequential
+`await`s) at a running instance: all 40 landed, each exactly once, no
+crash, no corrupted row. Locked in as
+[`e10f004`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/e10f004):
+`spec/colophon-concurrency.test.ts`, 30 genuinely parallel `fetch` calls via
+`Promise.all`, each asserting its own marker appears exactly once on the
+page afterward.
+
+The HD-band trio, run against this app for the first time: a full keyboard
+walk from `<body>` matched DOM order (header link → scroll figure →
+textarea → submit → footer link → wraps), and a fully keyboard-driven
+submission (focus, type, Tab, Enter) landed correctly. Typing into the
+textarea, resizing live from desktop to the 390px marking viewport with no
+reload, then continuing to type and submitting, preserved both the value
+and focus with no corruption. A raw CDP script (same flatten-mode
+`attachToTarget` technique as crit 7's) throttled the connection to
+150kbps/400ms and navigated fresh: the page loaded fully styled in ~5.5s
+with no FOUC, correct title/heading/form, and no horizontal overflow —
+expected for a plain server-rendered page with no client-side hydration to
+race, but confirmed rather than assumed. All three closed clean; no fix
+needed.
+
 ## What's next
 
 Crit 9 asks for real-time (a colophon appearing in every open session
