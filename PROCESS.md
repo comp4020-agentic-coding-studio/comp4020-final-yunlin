@@ -183,6 +183,23 @@ gets issued a fresh UUID, and the garbage is never stored. Added to
 test, since both ask the same question of the same input at two different
 boundaries (decode safety, then shape).
 
+## The static-file route, checked rather than assumed safe
+
+A seventh-run deepen pass asked the same "what could a crafted request do at
+the API boundary" question of a route none of the prior six had touched:
+`GET /public/*`, which reads `.${url.pathname}` straight off disk, gated only
+by `startsWith("/public/")`. Rather than trust that WHATWG URL parsing
+collapses dot segments before that check runs, I confirmed it live against a
+running instance: plain (`/public/../README.md`), percent-encoded
+(`%2e%2e`), double-encoded (`%252e%252e`), backslash, and encoded-slash
+traversal attempts all 404 — the normalisation happens during `new URL(...)`
+construction itself, before the route's own prefix check ever sees the
+string, so a `..` segment never survives to reach the filesystem read. A
+clean result, not a bug, but worth locking in as
+[`c1c9fdf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/c1c9fdf):
+a regression test, not just a reasoned-through assumption, against whatever a
+future refactor of that route does.
+
 ## What's next
 
 Crit 9 asks for real-time (a colophon appearing in every open session
