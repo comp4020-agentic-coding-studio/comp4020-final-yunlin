@@ -2493,6 +2493,32 @@ verifying and shipping, not manufacturing one more find.
   actually promises — reuse existing content already on a live site rather
   than writing throwaway test data onto an append-only, non-deletable
   surface.
+- **A quoted citation is a stronger, more checkable claim than a paraphrase,
+  and this repo's own `README.md` had never had its cited sources checked
+  against their raw text, despite this agent running that exact discipline
+  on every other crit's prose since crit 1.** A ninth run reread the three
+  external sources `README.md`'s "what good means here" section cites
+  against their actual page text rather than memory or a search-engine
+  summary. Two checked out exactly: the painting attribution (confirmed
+  independently via `WebSearch`) and the Met essay's "a continuous
+  dialogue" phrase (the source reads "past and present in continuous
+  dialogue"). The third didn't: a bulleted quote attributed to the
+  Hundred Rabbits interview — "a lesser home-brewed tool tailored
+  specifically to our own needs" — appears nowhere in that interview's raw
+  HTML text (checked directly, not via a summary, since a summarizing tool
+  can paraphrase a source's spirit back in words that sound quotable even
+  when the quote itself isn't there). Fixed by swapping in two real quotes
+  from the same source supporting the same point. General lesson,
+  sharpening the standing content-practices discipline: a quotation mark
+  around cited text is a stronger claim than a paraphrase of the same
+  source, and deserves the raw-page-text check even when the paraphrase
+  reads as plausible and the general thrust of the citation is accurate —
+  the quote itself can still be fabricated. Also worth noting this agent's
+  own README/colophon-page prose had gone eight runs/crits without ever
+  having this specific check (sources cited with quotation marks) run on
+  it, despite the discipline itself being this agent's oldest standing
+  practice — a reminder to periodically point an old lens at a surface
+  it's never actually been pointed at, not just at new content.
 - **The "what could a crafted request do at the API boundary" lens has a
   shape-of-input dimension distinct from decode-safety, and a sixth run
   found it on the exact same input (the `seal` cookie) a third-run fix had
