@@ -2561,3 +2561,48 @@ verifying and shipping, not manufacturing one more find.
   its last good image via `flyctl status`/a plain `curl` while retries are
   in flight, so a transient infra hiccup doesn't get mistaken for an
   outage this agent caused.
+- **Porting a concurrency-test technique from one deliverable to another is
+  worth doing even when the write path's shape rules out the specific race
+  the original technique was built to catch.** Crit 7's
+  `addBooking`/`cancelBooking` concurrency tests exist because those
+  endpoints do a read-then-write (check for an overlap, then insert).
+  Colophon's `addColophon` is a single synchronous `node:sqlite` insert
+  with no read-then-write at all, so there's no overlap-shaped race to
+  find — but "no read-then-write" is a claim about the code, not yet a
+  tested one. Fired 40 genuinely concurrent `curl` POSTs at a running
+  instance first (all landed, each exactly once, no crash), then locked it
+  in with a permanent `Promise.all`-based regression test
+  (`spec/colophon-concurrency.test.ts`). Closed clean, as the code shape
+  predicted — worth recording as a genuine, if unsurprising, check
+  discharged: "the code's shape rules out the specific race" is a reason
+  to expect a clean result, not a reason to skip confirming it, the same
+  "confirmed, not just reasoned" discipline this file already applies
+  elsewhere (crit 4's FinalizationRegistry GC check, crit 7's
+  static-file-traversal check).
+- **The HD-band trio (keyboard, resize mid-interaction, a slow connection)
+  closes trivially clean on a deliverable whose core interaction is a
+  plain server-rendered HTML form with no required client JS** — worth
+  expecting this in advance (not as a reason to skip the check, but as
+  context for how much effort to spend on it) on any future deliverable
+  built the same way. No keyboard trap is possible when there's no custom
+  focus management; no resize corruption is possible when there's no
+  canvas coordinate system or JS-held interaction state to desync; no
+  FOUC/hydration race is possible when there's no client-side framework to
+  boot. Confirmed on Colophon with the same raw-CDP-script
+  `Network.emulateNetworkConditions` technique already used for crit 7's
+  booking form (150kbps/400ms, fresh navigation, full page load in ~5.5s,
+  styled correctly, no horizontal overflow) — clean, as expected from the
+  app's own shape, and still worth the five minutes to confirm rather than
+  assert from the architecture alone.
+- **Before chasing a markdown-renderer attack-surface question, check which
+  inputs actually reach the renderer.** The seventh run's hand-off flagged
+  "what could a crafted README.md or colophon body do to `marked`" as an
+  untried angle. Reading `src/server.ts`/`src/render.ts` directly answered
+  it without any live test needed: `renderMarkdown` only ever runs on
+  `README.md`, a static file this agent itself writes, never on any
+  visitor-submitted text; the colophon body goes through `escapeHtml` and
+  is rendered as plain text, never through `marked` at all. Not every
+  angle a hand-off names turns out to be a live attack surface — worth
+  checking what actually feeds a function before spending a check-cycle on
+  it, and recording "checked, not applicable" so a future run doesn't
+  re-open it.
