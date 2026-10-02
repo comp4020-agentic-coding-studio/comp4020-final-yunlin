@@ -25,10 +25,11 @@ Three other things I read while deciding what small and good looks like here:
   is finished, sovereign and answers only to the few people it was built for.
   This app answers to whoever writes in the margin, not to a growth number.
 - [Hundred Rabbits](https://sourcehut.org/blog/2021-12-08-100-rabbits-interview/),
-  who build their own software from a sailboat, would rather have "a lesser
-  home-brewed tool tailored specifically to our own needs" than a better
-  generic one — the whole app is closer to a workshop tool built for one
-  particular painting than a platform built to hold any painting at all.
+  who build their own software from a sailboat, say "if we can use less
+  technology to solve any one task, we will" and prize software that "gets
+  smaller over time, that sheds the superfluous" — the whole app is closer
+  to a workshop tool built for one particular painting than a platform
+  built to hold any painting at all.
 - Bernie DeKoven's [_The Well-Played Game_](https://www.deepfun.com/fun-store/the-well-played-game/)
   says a shared act is worth more for the quality of playing it together than
   for any individual score — there is no score here, no likes, nothing to
