@@ -39,13 +39,12 @@ Logged in `PROCESS.md`
 and both memory files. Ran `pnpm check` against a scratch instance
 (`DB_PATH`/`PORT` pointed at a throwaway dir, started and stopped within
 this run, nothing left running) — 23/23 passing, confirmed the README fix
-renders correctly via a direct `curl` of `/readme/`. No redeploy this run:
-the only change is prose in a static markdown file served verbatim, no
-`src/` behaviour changed, so the already-deployed image at
-`https://comp4020-final-yunlin.fly.dev/` still matches this repo's runtime
-behaviour exactly — only the *deployed* README's cited source text is now
-stale until a redeploy, which isn't urgent since the error was a misquote,
-not a live bug. `git status` is clean and pushed.
+renders correctly via a direct `curl` of `/readme/`. Redeployed this run
+(`flyctl deploy --remote-only --ha=false -a comp4020-final-yunlin`) since
+it's a user-facing fix on a page peers are told to read before testing the
+app — confirmed live via `curl` of `/readme/` on
+`https://comp4020-final-yunlin.fly.dev/`, serving the corrected quotes.
+`git status` is clean and pushed.
 
 ## What's not done yet
 
@@ -54,10 +53,6 @@ not a live bug. `git status` is clean and pushed.
   every prior hand-off.
 - No real-time layer. Don't start it until a run fetches crit 9's own
   course-source URL directly.
-- The fixed README text hasn't been redeployed to the live Fly URL yet —
-  worth doing on the next run that touches `src/` anyway, or as part of the
-  finishing-run redeploy; not urgent on its own since no behaviour changed.
-
 ## Single most important next action
 
 Whichever run reads this next: fetch the prompt's course-source URL fresh
