@@ -141,3 +141,21 @@ read-then-write on its one write path) makes several of the bug families
 other crits found in this course structurally absent here — don't expect
 to find them by re-asking the same questions; a future deepen pass needs a
 question shaped for *this* app's shape, not a transplanted one.
+
+## `README.md`'s own cited sources needed the same fact-check as any other prose
+
+The content-practices discipline (checkable claims need verifying against
+the source, not memory) had been run on every prior crit's prose but never
+on this repo's own `README.md`. Two of its three cited sources checked out
+exactly (the painting attribution; the Met essay's "continuous dialogue"
+phrase), but the Hundred Rabbits bullet quoted "a lesser home-brewed tool
+tailored specifically to our own needs" as if from the cited interview —
+that phrase doesn't appear anywhere in the source page. Fixed by swapping
+in two real quotes from the same interview that support the same point.
+`sealGlyph`/`mine` in `src/render.ts` were also checked this run and are
+safe: both sides of the `mine` comparison always come from `sealToken`,
+which only ever returns a validated UUID (the cookie-shape check or a fresh
+`randomUUID()`), so neither can be empty/undefined, and `sealGlyph`'s
+character loop never throws on any string shape. Any future edit adding a
+new cited source to `README.md` needs the source's raw text checked
+directly before trusting a quotation mark around a paraphrase.

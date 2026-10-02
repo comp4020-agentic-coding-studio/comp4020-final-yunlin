@@ -2,50 +2,50 @@
 
 ## State
 
-Eighth run on this deliverable, 110h to cutoff at the start of the run. The
+Ninth run on this deliverable, 99h to cutoff at the start of the run. The
 prompt's course-source URL is still crit 8's own (`crits/08-its-alive.json`)
 — fetched fresh — so real-time still stays out of scope until a run fetches
-crit 9's brief directly. Working tree matched the seventh run's hand-off
+crit 9's brief directly. Working tree matched the eighth run's hand-off
 exactly at the start; nothing new had drifted in.
 
-The seventh run's hand-off named three untried angles. Tried two of them,
-both closed clean:
+The eighth run's hand-off named three untried angles. Closed all three:
 
-- **Concurrent writes to `addColophon`.** Ported crit 7's
-  `addBooking`/`cancelBooking` concurrency-test technique. `addColophon` is
-  a single synchronous `node:sqlite` insert with no read-then-write check
-  (a different, simpler shape than crit 7's overlap logic), but that's a
-  reasoned claim until tested: fired 40 genuinely concurrent `curl` POSTs
-  at a running instance first (all 40 landed, each exactly once, no
-  crash), then locked it in as a permanent test,
-  [`e10f004`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/e10f004)
-  (`spec/colophon-concurrency.test.ts`, 30 parallel `fetch`es via
-  `Promise.all`). `pnpm check` went from 22 to 23 passing tests.
-- **The HD-band trio** (keyboard, resize mid-interaction, a slow
-  connection), run against this app for the first time. All three clean:
-  a full keyboard walk matches DOM order and a fully keyboard-driven
-  submission works end to end; typing → resizing live to the 390px
-  viewport mid-type → continuing to type → submitting preserves value and
-  focus with no corruption; a CDP-throttled 150kbps/400ms fresh load (same
-  flatten-mode `attachToTarget` script technique as crit 7's) renders
-  fully styled in ~5.5s with no FOUC, since the page is plain
-  server-rendered HTML with nothing client-side to race.
-
-The third angle — "what could a crafted README.md or colophon body do to
-the markdown renderer" — turned out not to apply: `renderMarkdown` only
-ever runs on `README.md` (`src/server.ts`'s `/readme/` route), which is a
-static file this agent itself writes, never user input. The colophon body
-is escaped and rendered as plain text (`render.ts`'s `colophonEntry`), never
-passed through `marked` at all. Not a gap to keep chasing — recorded as
-checked-and-not-applicable so a future run doesn't re-open it.
+- **`sealGlyph` on any token shape, and `mine`'s cross-tab leak risk.** Both
+  clean, confirmed by reading `src/render.ts`/`src/cookies.ts` together
+  rather than in isolation: `sealGlyph`'s per-character hash loop can't
+  throw on any string (an empty string just leaves the hash at 0), and
+  `c.token`/`ownToken` in the `mine` comparison always come from
+  `sealToken`, which only ever returns a validated UUID on either branch —
+  there's no path where either side is empty/undefined, so no false "mine"
+  match is possible.
+- **A direct fact-check of `README.md`'s own three cited sources** — the
+  content-practices discipline this agent runs on every other crit's prose,
+  never yet run on this repo's own README. Two checked out exactly: the
+  painting attribution (Wang Yi painted the portrait, Ni Zan added pine and
+  rock, 1363, Palace Museum Beijing — confirmed independently via
+  WebSearch) and the Met essay's "continuous dialogue" phrase (the source
+  reads "past and present in continuous dialogue"). The third didn't: the
+  Hundred Rabbits bullet quoted "a lesser home-brewed tool tailored
+  specifically to our own needs" as if from the cited interview — that
+  exact phrase, and nothing close to it, appears anywhere on the source
+  page (checked against the raw HTML text, not a search-engine summary).
+  Fixed in
+  [`f7d259f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f7d259f)
+  by swapping in two real quotes from the same interview that support the
+  same point the bullet was already making.
 
 Logged in `PROCESS.md`
-([`f757d7d`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f757d7d))
-and both memory files. No redeploy this run: nothing in `src/` changed,
-only a new test file and process/memory documentation, so the
-already-deployed image at `https://comp4020-final-yunlin.fly.dev/` already
-matches this repo's runtime behaviour exactly. `git status` is clean and
-pushed.
+([`4b6af0d`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/4b6af0d))
+and both memory files. Ran `pnpm check` against a scratch instance
+(`DB_PATH`/`PORT` pointed at a throwaway dir, started and stopped within
+this run, nothing left running) — 23/23 passing, confirmed the README fix
+renders correctly via a direct `curl` of `/readme/`. No redeploy this run:
+the only change is prose in a static markdown file served verbatim, no
+`src/` behaviour changed, so the already-deployed image at
+`https://comp4020-final-yunlin.fly.dev/` still matches this repo's runtime
+behaviour exactly — only the *deployed* README's cited source text is now
+stale until a redeploy, which isn't urgent since the error was a misquote,
+not a live bug. `git status` is clean and pushed.
 
 ## What's not done yet
 
@@ -54,31 +54,29 @@ pushed.
   every prior hand-off.
 - No real-time layer. Don't start it until a run fetches crit 9's own
   course-source URL directly.
+- The fixed README text hasn't been redeployed to the live Fly URL yet —
+  worth doing on the next run that touches `src/` anyway, or as part of the
+  finishing-run redeploy; not urgent on its own since no behaviour changed.
 
 ## Single most important next action
 
 Whichever run reads this next: fetch the prompt's course-source URL fresh
 before doing anything else. If it's still crit 8, the deepen phase has now
-survived five "declare it dry, then find one more thing" cycles (restart-
+survived six "declare it dry, then find one more thing" cycles (restart-
 persistence, the layout-overflow bug, the unbounded-cookie-token bug, the
-clean static-file-traversal check, and this run's clean concurrency/HD-band
-checks). This repo's write path and rendering are both genuinely simple
-(one synchronous insert, no client JS required, no read-then-write
-anywhere) — several bug families other crits found in this course
-(double-firing events, pointer-capture drift, animation-timer races) are
-structurally absent here, so re-pointing those same lenses at this app is
-unlikely to find anything new. A fresh angle needs to be shaped for what
-this app actually does, not transplanted wholesale. Not yet tried: the
-`sealGlyph` function (does every token, including a crafted non-UUID
-cookie value that still passes the shape check some other way, map to a
-glyph without throwing or degenerating); whether two tabs with different
-seal cookies ever see each other's "mine" state leak (reread
-`colophonEntry`'s `mine` comparison for any case where `ownToken` could be
-undefined/empty and compare loosely); and a direct fact-check of
-`README.md`'s own claims (it argues what "good" means for this app — the
-content-practices discipline in the global `MEMORY.md` applies to a
-self-descriptive README exactly as it does to any other page). If the
-prompt calls this crit's window closed instead, the finishing steps
-(reflection, final sweep across both marking viewports, commit, confirm
+clean static-file-traversal check, the clean concurrency/HD-band checks,
+and this run's fabricated-quote fix). Every angle this run's own hand-off
+named is now closed. Not yet tried: re-running the HD-band/concurrency
+checks against the *redeployed* live Fly URL rather than only a scratch
+local instance (every prior live-restart/concurrency check in this repo ran
+against a local build or an earlier deploy, never the current commit on the
+live machine); a fresh read of `spec/*.test.ts` collectively for whether
+any two tests assert contradictory things about the same code path (no
+run has done a cross-test consistency pass, only per-test correctness);
+and whether `Dockerfile`/`fly.toml`/`mise.toml` still agree on the Node
+version this repo pins, now that six runs have passed since that was last
+checked. If the prompt calls this crit's window closed instead, the
+finishing steps (reflection, final sweep across both marking viewports
+against the built preview, redeploy this run's README fix, commit, confirm
 live) are what's left — the repo going public and starting CI deploys for
 crit 9 isn't this agent's job to trigger, per doctrine.
