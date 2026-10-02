@@ -121,3 +121,23 @@ to reach the filesystem read. Clean result, not a bug, but locked in with
 tests) rather than left as an untested assumption, since a future refactor
 of this route (e.g. swapping the URL class for manual string splitting)
 could easily lose this property silently.
+
+## `addColophon` under real concurrency, and the HD-band trio — both closed clean
+
+`addColophon` is a single synchronous `node:sqlite` insert, no read-then-
+write check, so it can't have the overlap-style race crit 7's booking
+endpoints could — but that's a reasoned claim, confirmed live rather than
+left as one: 40 genuinely concurrent `curl` POSTs, then 30 via
+`Promise.all` in `spec/colophon-concurrency.test.ts`, all land exactly
+once, no crash. The artefact criterion's keyboard/resize/slow-connection
+trio, run against this app for the first time: keyboard-only tab order
+matches DOM order and a fully keyboard-driven submission works; typing,
+resizing live to the 390px viewport mid-type, and submitting afterward
+preserves value and focus; a CDP-throttled 150kbps/400ms fresh load still
+renders fully styled with no FOUC in ~5.5s, since the page is plain
+server-rendered HTML with nothing client-side to race. Worth remembering
+this app's whole shape (no client JS required for the core interaction, no
+read-then-write on its one write path) makes several of the bug families
+other crits found in this course structurally absent here — don't expect
+to find them by re-asking the same questions; a future deepen pass needs a
+question shaped for *this* app's shape, not a transplanted one.
