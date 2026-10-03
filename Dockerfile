@@ -4,6 +4,7 @@
 # there is no bundler or build stage: the image is the same source this repo
 # typechecks and tests against. node:sqlite (also stdlib, no native module to
 # compile) persists to /data, the one thing fly.toml mounts as a volume.
+# node and pnpm versions here repeat mise.toml's pins; mise.toml is the one to follow
 FROM node:24.21.0-bookworm-slim
 
 WORKDIR /app
