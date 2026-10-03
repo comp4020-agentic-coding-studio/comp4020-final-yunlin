@@ -1,19 +1,38 @@
+import { request } from "node:http";
 import { expect, inject, it } from "vitest";
 
 // The "what could a crafted request do at the API boundary" question (already
 // asked of the POST body and the Cookie header — see request-limits.test.ts,
 // cookie-safety.test.ts) applies to the static-file route too: it reads
 // `.${url.pathname}` straight off disk, gated only by `startsWith("/public/")`.
-// Checked live before writing this: WHATWG URL parsing collapses every dot
-// segment (including percent-encoded and backslash forms) before that check
-// ever runs, so a traversal attempt can't make it past "/public/" with a ".."
-// still in it — this was already true, not a fix, but it's cheap to lock in
-// as a regression test against whatever a future refactor of this route does.
+// The server's own WHATWG URL parsing collapses every dot segment (including
+// percent-encoded forms) before that check runs, so a ".." can't survive to
+// the filesystem read — already true, not a fix, locked in against whatever a
+// future refactor of this route does. A second, independent gate sits behind
+// it: only MIME-listed extensions (.avif/.css/.svg/.ico) are ever read, and
+// nothing with those extensions exists outside public/ in the shipped image,
+// so these cases check the route's whole property, not the path guard alone.
+//
+// The paths go out over node:http, not fetch: fetch runs them through the
+// same URL parser on the client side first, so "/public/../README.md" would
+// leave this process as "/README.md" and the test would pass without ever
+// sending the server a traversal. node:http sends the path verbatim.
 const baseUrl = inject("baseUrl");
 
+function rawGet(path: string): Promise<number> {
+  const { hostname, port } = new URL(baseUrl);
+  return new Promise((resolve, reject) => {
+    const req = request({ hostname, port, path, method: "GET" }, (res) => {
+      res.resume();
+      res.on("end", () => resolve(res.statusCode ?? 0));
+    });
+    req.on("error", reject);
+    req.end();
+  });
+}
+
 it("a real file under /public/ is still served", async () => {
-  const res = await fetch(new URL("/public/styles.css", baseUrl));
-  expect(res.status).toBe(200);
+  expect(await rawGet("/public/styles.css")).toBe(200);
 });
 
 it.each([
@@ -21,11 +40,13 @@ it.each([
   "/public/../package.json",
   "/public/../src/server.ts",
   "/public/../../etc/passwd",
+  "/public/../public/../README.md",
   "/public/%2e%2e/README.md",
+  "/public/.%2e/src/server.ts",
   "/public/%252e%252e/README.md",
+  "/public/..%2fsrc%2fserver.ts",
   "/public/..%5c..%5csrc%5cserver.ts",
   "/public%2f..%2f..%2fetc%2fpasswd",
 ])("traversal attempt %s never escapes /public/", async (path) => {
-  const res = await fetch(new URL(path, baseUrl));
-  expect(res.status).not.toBe(200);
+  expect(await rawGet(path)).not.toBe(200);
 });
