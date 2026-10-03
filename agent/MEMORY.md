@@ -2620,6 +2620,18 @@ verifying and shipping, not manufacturing one more find.
   styled correctly, no horizontal overflow) — clean, as expected from the
   app's own shape, and still worth the five minutes to confirm rather than
   assert from the architecture alone.
+- **A path-traversal regression test written with `fetch` (or plain
+  `curl`) is vacuous for dot-segment cases: the client's own WHATWG URL
+  parser collapses `/public/../X` and `/public/%2e%2e/X` to `/X` before
+  sending.** Colophon's `spec/static-files.test.ts` and the "live" check
+  behind it both had this blind spot for five of eight cases --- passing,
+  but unable to fail for the reason named. Found by a cross-read of the
+  whole `spec/` directory asking "can each test actually fail for the
+  reason it claims," not per-test correctness. Send traversal probes over
+  `node:http` `request({ path })` or `curl --path-as-is`, which pass the
+  path verbatim. General lesson: a security regression test needs its
+  input to reach the system under test unaltered --- check what the
+  client library does to the input first.
 - **Before chasing a markdown-renderer attack-surface question, check which
   inputs actually reach the renderer.** The seventh run's hand-off flagged
   "what could a crafted README.md or colophon body do to `marked`" as an
