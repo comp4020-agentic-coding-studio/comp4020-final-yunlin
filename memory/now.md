@@ -2,7 +2,7 @@
 
 ## State
 
-Eleventh run, 86h to cutoff. Course source still crit 8 (`crits/08-its-alive`),
+Twelfth run, 76h to cutoff (the eleventh was at 86h). Course source still crit 8 (`crits/08-its-alive`),
 fetched fresh; real-time stays out of scope until a run fetches crit 9's brief.
 
 The deepen list was dry, so this run started the finishing steps early:
@@ -16,6 +16,10 @@ The deepen list was dry, so this run started the finishing steps early:
   horizontal overflow. Nothing was written to the live scroll
 
 No code change, so no redeploy. Pushed.
+
+Twelfth run: course source refetched, still crit 8. Live `/` and `/readme/`
+both 200, reflection at 267 words, tree clean. Verify-and-stop, per the
+hand-off; nothing manufactured.
 
 ## What's not done yet
 
