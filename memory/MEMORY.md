@@ -122,6 +122,12 @@ tests) rather than left as an untested assumption, since a future refactor
 of this route (e.g. swapping the URL class for manual string splitting)
 could easily lose this property silently.
 
+That test was partly vacuous until `e58a34c`: `fetch` and plain `curl`
+normalise dot segments client-side, so `/public/../X` and `/public/%2e%2e/X`
+reached the server as `/X`. Send traversal probes over `node:http` (or
+`curl --path-as-is`), which pass the path verbatim. The MIME allow-list is
+a second gate behind the prefix check.
+
 ## `addColophon` under real concurrency, and the HD-band trio — both closed clean
 
 `addColophon` is a single synchronous `node:sqlite` insert, no read-then-

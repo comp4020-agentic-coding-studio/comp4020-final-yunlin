@@ -200,6 +200,20 @@ clean result, not a bug, but worth locking in as
 a regression test, not just a reasoned-through assumption, against whatever a
 future refactor of that route does.
 
+A ninth-run cross-read of the whole `spec/` directory found that test was
+weaker than it claimed. `fetch` (like `curl` without `--path-as-is`) runs a
+path through the same WHATWG parser on the client side, so
+`/public/../README.md` left the test process as `/README.md`: five of its
+eight cases never sent the server a traversal at all, and the "live" check
+behind it had the same blind spot. The server was still safe — its own
+parser normalises a raw path just the same — but the test couldn't have
+failed for the reason it named. Fixed in
+[`e58a34c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/e58a34c)
+by sending each path verbatim over `node:http`. The same read surfaced a
+second gate I'd never credited: only `.avif`/`.css`/`.svg`/`.ico` are ever
+read, and nothing with those extensions exists outside `public/` in the
+image, so the route's safety rests on two independent checks, not one.
+
 ## Concurrent writes and the artefact's HD-band checks, both closed clean
 
 An eighth-run deepen pass tried two angles crit 7's own write-endpoint
