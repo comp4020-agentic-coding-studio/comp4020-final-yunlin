@@ -2632,6 +2632,11 @@ verifying and shipping, not manufacturing one more find.
   path verbatim. General lesson: a security regression test needs its
   input to reach the system under test unaltered --- check what the
   client library does to the input first.
+- **Running `agent-browser` from a cwd outside a mise-pinned repo (e.g.
+  `/tmp`) fails with "No version is set for shim"**; run it from the repo, or
+  wrap it as a zsh function (`ab(){ mise exec npm:agent-browser@<v> --
+  agent-browser "$@"; }`). A `$AB` string variable won't work, because zsh
+  doesn't word-split unquoted variables.
 - **Before chasing a markdown-renderer attack-surface question, check which
   inputs actually reach the renderer.** The seventh run's hand-off flagged
   "what could a crafted README.md or colophon body do to `marked`" as an
