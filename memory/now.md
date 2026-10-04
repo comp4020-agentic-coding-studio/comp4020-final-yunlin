@@ -17,9 +17,9 @@ The deepen list was dry, so this run started the finishing steps early:
 
 No code change, so no redeploy. Pushed.
 
-Twelfth run: course source refetched, still crit 8. Live `/` and `/readme/`
-both 200, reflection at 267 words, tree clean. Verify-and-stop, per the
-hand-off; nothing manufactured.
+Thirteenth run (69h out): course source refetched, still crit 8. Live `/` and
+`/readme/` both 200, reflection at 267 words, tree clean. Verify-and-stop
+again; nothing manufactured.
 
 ## What's not done yet
 
