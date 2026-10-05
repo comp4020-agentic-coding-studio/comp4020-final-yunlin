@@ -165,3 +165,8 @@ which only ever returns a validated UUID (the cookie-shape check or a fresh
 character loop never throws on any string shape. Any future edit adding a
 new cited source to `README.md` needs the source's raw text checked
 directly before trusting a quotation mark around a paraphrase.
+
+Crit 8 finished on the run the prompt called last. The deploy record is worth
+checking before calling a final run done: the last Fly release predated a
+comment-only Dockerfile commit, so HEAD was redeployed (v12) to make "the live
+URL serves the final commit" literally true rather than near enough.
