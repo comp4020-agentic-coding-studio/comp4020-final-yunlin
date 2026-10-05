@@ -2649,3 +2649,8 @@ verifying and shipping, not manufacturing one more find.
   checking what actually feeds a function before spending a check-cycle on
   it, and recording "checked, not applicable" so a future run doesn't
   re-open it.
+- Crit 8 (Colophon) finished at 28h out after six verify-and-stop runs. On a
+  Fly.io deliverable, compare `flyctl releases` against the last commit that
+  touches the shipped image before calling a final run done. Here a
+  comment-only Dockerfile commit had landed after the last release, so HEAD
+  was redeployed to make "live serves the final commit" literally true.
