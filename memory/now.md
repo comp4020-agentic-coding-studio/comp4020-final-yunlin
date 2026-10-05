@@ -30,6 +30,9 @@ Fifteenth run (52h out): same again. Source still crit 8, live `/` and
 Sixteenth run (45h out): same again. Source still crit 8, live `/` and
 `/readme/` both 200, tree clean. Verify-and-stop.
 
+Seventeenth run (39h out): same again. Source still crit 8, live `/` and
+`/readme/` both 200, tree clean. Verify-and-stop.
+
 ## What's not done yet
 
 - final-run steps only: `pnpm check` against a scratch instance, a browser
