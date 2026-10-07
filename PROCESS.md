@@ -2,281 +2,115 @@
 
 ## From the brief to the object
 
-The final project brief fixes three requirements — multi-user, real-time,
-persistent — and leaves everything else, including what "good" means, open.
-Rather than start from a stack and look for a use for it, I started from a
-lens this agent has carried since its very first crit — Ni Zan, ink-wash
-restraint, "taste is what you leave out" — and asked what a genuinely
-multi-user, real-time, persistent object already looks like in that world.
-Chinese handscroll
-colophons answered directly: collectors have been appending inscriptions to
-the same scroll for centuries, an actual distributed, asynchronous,
-permanent multi-author object, long before the word "multi-user" existed.
-Building a small digital version of that — one painting, a line each, no
-account, no edits — gave the brief's three fixed requirements a concrete,
-historically grounded shape instead of the median chat room with the nouns
-swapped, which the brief explicitly warns against. `README.md`
-([`8d76d80`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/8d76d80)) argues
-this in full, against three read sources.
-
-## Building the smallest version of it
-
-[`334d24f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/334d24f) is the
-whole first slice: `node:http` for the server and `node:sqlite` for storage,
-both Node stdlib, no framework and no bundler. I checked Node 24.21 (the
-version this repo pins) directly before committing to this — it runs `.ts`
-files unmodified with no build step, and `node:sqlite` needs no native
-module compiled in Docker, which is what let the Dockerfile stay a single
-`pnpm install --prod` with no build stage. The core write path (posting a
-colophon) is a plain HTML form to a POST route that redirects afterward, so
-it works with JavaScript off; the real-time layer the brief expects belongs
-to next week and would be additive on top of this, not a rewrite of it.
-
-An anonymous per-browser cookie is the only notion of a visitor — no
-accounts, matching what `README.md` argues "who counts as a person" should
-mean here. The one accent colour (`--seal`) marks exactly one thing: a
-colophon the current browser wrote. That's also how this slice answers the
-crit's own bar directly — a stranger writes a line, leaves, and the next
-time they load the page (even a different day, even after a redeploy, since
-the database lives on the Fly volume at `/data`), their own line is still
-there, still marked as theirs.
-
-## Corrections that landed in the harness, not just a retry
-
-Two things got caught and fixed by checking rather than assuming:
-
-- The own-seal spec test
-  ([`807906b`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/807906b))
-  first asserted "yours" appeared somewhere in a 400-character slice after
-  the marker text — passed for the wrong reason once, then failed for the
-  right reason, since "Add yours" (the compose heading) falls inside that
-  window too. Fixed by slicing out exactly the `<li>` the marker landed in.
-- `CLAUDE.md` ([`33ef6c8`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/33ef6c8))
-  states "escape all stored text before templating" as a standing rule, not
-  just a thing I happened to do once: every colophon body is a stranger's
-  own words, persisted forever and re-rendered to every future visitor —
-  the one place here where getting it wrong is a stored XSS hole, not a
-  cosmetic bug.
-
-A second-run deepen pass found two more, both grounded in this repo's own
-harness rules rather than a generic bug hunt:
-
-- `CLAUDE.md` says `--seal` marks exactly one thing, "this colophon is
-  yours" — but `styles.css` also spent it on the kicker line, the form-error
-  banner and the readme's blockquote border
-  ([`6a3ecdf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6a3ecdf)).
-  Moved all three to `--ink`/`--ink-soft` and added a test that greps every
-  `var(--seal)` use, rather than trusting the rule's own wording — a prior
-  crit's identical drift went unnoticed for several runs.
-- `readBody` buffered an incoming POST with no size cap
-  ([`abd5dc4`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/abd5dc4)):
-  a request skipping the form's own `maxlength="320"` could exhaust memory
-  on this single-machine deploy. Confirmed with raw sockets, both a
-  declared `Content-Length` over budget and a chunked request declaring
-  none. Two fix attempts — destroy the connection, then resume-and-respond
-  — both raced a still-writing client into a connection error, caught by
-  `pnpm check` flaking against the built image across repeated runs.
-  Draining the body to its natural end while discarding past the cap
-  ([`9ef7505`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/9ef7505))
-  removed the race: no memory cost, and it only responds once the
-  client's own write has finished.
-
-All four are things a quick manual pass can miss: the seal check only shows
-up by rereading the whole stylesheet, not the markup a design argument is
-framed around; the body cap only matters once a crafted request, not the
-form, is asking. I verified the whole slice against the exact image the
-`Dockerfile` builds — built it locally with `sudo docker build`, ran it with
-a `--tmpfs /data` the same way `.github/workflows/checks.yml` does, and ran
-`pnpm check` against that running container rather than a locally-started
-dev process, so what passed is what CI would see. I also drove it with
-`agent-browser`: filled and submitted the form, reloaded to confirm the
-colophon was still there and marked "yours", resized 1280×800 to 390×844
-mid-typing with the value and focus intact, and tabbed through to confirm
-the horizontal scroll strip is keyboard-reachable, not just mouse-draggable.
-
-A third-run pass asked the same "what could a crafted request do" question
-of the Cookie header, not just the POST body: a `seal=%` cookie — invalid
-percent-encoding no real browser sends, but nothing stops any client from
-sending it — threw uncaught inside `decodeURIComponent` before any route
-ran, crashing the whole process. Confirmed live against the built image: the
-container exited, and the single Fly machine this app runs on would have
-needed a restart to serve the next visitor. Fixed
-([`6b5e6fb`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6b5e6fb))
-by treating a cookie `decodeURIComponent` rejects the same as no cookie at
-all, deployed the same run, and reconfirmed live at
-`https://comp4020-final-yunlin.fly.dev/` — a bug this severe, already live,
-wasn't one to leave for the finishing run.
+The brief fixes three requirements (multi-user, real-time, persistent) and
+leaves "good" open. Rather than pick a stack and look for a use for it, I
+started from the lens this agent has carried since its first crit, Ni Zan and
+"taste is what you leave out", and asked what a multi-user, real-time,
+persistent object already looks like in that world. Handscroll colophons
+answered directly: strangers appending a line each to the same painting for six
+centuries, nobody editing anyone else's. `README.md`
+([`8d76d80`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/8d76d80))
+argues it from the Met's history of the format, Robin Sloan's home-cooked app
+and Hundred Rabbits. My position on that small-web writing is narrower than
+theirs: I'm less interested in an app being small than in it being _finished_
+in Sloan's sense, an object with a fixed shape that strangers add to, rather
+than a platform that keeps growing features.
 
 ## The stack, and what it costs
 
-Plain `node:http` over a framework (Express, Hono, Astro) costs more
-hand-written routing and no middleware ecosystem, for a slice this size —
-four routes, no auth, no JSON API — that isn't much. It buys directness:
-every request's path from cookie to database to rendered HTML is one file,
-readable start to end, which matters more than middleware convenience while
-the app's shape is still being decided. `node:sqlite` over `better-sqlite3`
-(used on an earlier crit) costs a newer, less-battle-tested API; it buys no
-native module to compile in Docker, a real simplification against the
-256MB/one-machine constraint this repo runs under. Neither choice is
-final — if next week's real-time layer needs more than an `EventSource` and
-a `node:sqlite` poll can give, that trade-off gets revisited and recorded
-here, not silently abandoned.
+[`334d24f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/334d24f)
+is the first slice: `node:http` and `node:sqlite`, both Node stdlib, no
+framework, no bundler. I checked Node 24.21 directly before committing to it:
+it runs `.ts` unmodified, and `node:sqlite` needs no native module compiled in
+Docker, so the image is one `pnpm install --prod` and the same source the repo
+typechecks. The cost is hand-written routing and a newer, less battle-tested
+SQLite binding. For five routes and no auth that's cheap, and it buys a request
+path you can read start to end in one file.
 
-## Verifying the crit's own bar directly, not just its local stand-in
+Real-time is server-sent events
+([`340c133`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/340c133)).
+Everything that travels here goes one way, server to browser: a new colophon,
+or a change in who's looking. Writing stays a plain form post, which the
+harness requires to work with JavaScript off. WebSockets would add a second
+write path for no gain, and polling fast enough to hit "within a second" would
+be a request per second per open page on a 256MB machine. SSE also gives
+reconnection for free: the browser resends the id of the last event it saw,
+and because the scroll is append-only, "what you missed" is exactly every row
+with a higher id. The cost is that presence lives in one process's memory,
+which ties the app to one machine. The course gives it one machine.
 
-Every prior run's Docker checks ran against `--tmpfs /data` (matching CI),
-which proves nothing about persistence — a tmpfs is memory-backed and never
-survives a restart either, local or real. The actual claim this crit's brief
-asks for — "deployed on Fly, doing its core thing for a stranger, with a
-trace that's still there when they come back" — had never been checked
-against a real restart of the live machine. This run did: with two existing
-colophons already on the live scroll from earlier proof-of-life checks,
-`flyctl machine restart` (a full Firecracker VM reboot, confirmed in
-`flyctl logs` — `SIGINT` to the Node process, volume unmounted, then a
-genuine `reboot: Restarting system` and a fresh boot) left both colophons
-exactly where they were. Also confirmed, while reading those logs, that the
-server's default `SIGINT` handling (process exits, no custom handler) never
-risked a torn write: every `addColophon` call is one synchronous
-`node:sqlite` statement, so there's no multi-step commit a restart could
-interrupt partway through. Clean result, not a bug — but a different kind of
-check from every other verification logged here, since it tests the real
-deploy mechanism rather than a stand-in for it.
+## Several people at once
 
-## A permanent entry means a permanent layout bug too, not just a content one
+This week's decision is in
+[`decisions/0001-who-else-is-here.md`](decisions/0001-who-else-is-here.md),
+written and committed
+([`2a7d6e3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/2a7d6e3))
+before any of the code. The question that mattered was whether a visitor can
+see who else is looking. My first instinct was "nobody, only ink travels",
+since a colophon is asynchronous by nature. Rereading the history turned that
+over. Scrolls were unrolled at gatherings of friends, and many inscriptions
+were written at exactly such a gathering, so the page now shows the seals of
+whoever has it open and lets them go when they leave. Presence is wet ink and
+is never stored; only a colophon is. The record weighs this against a reader
+count (a metric, which the README rules out), permanent viewing marks
+(surveillance dressed as history) and typing indicators (pressure on a line the
+character limit exists to slow down). It also names the costs: presence leaks
+timing, and twelve glyphs collide.
 
-A fifth-run deepen pass asked a question none of the prior ones had: every
-check so far treated "a colophon can never be edited or deleted" as a
-security/content question (XSS, length, ownership) — never as a rendering
-one. `.colophon-body` had `white-space: pre-wrap` but no `overflow-wrap`,
-so a single word with no spaces — well under the 320-character limit, as
-ordinary as a pasted URL — had no point to break at. Confirmed live before
-touching anything: a 300-character unbroken string pushed `document.body
-.scrollWidth` to 2203px against an `innerWidth` of 1280, visibly blowing the
-page out sideways in a screenshot. Because nothing can ever remove a
-colophon, that one entry would have stayed broken for every future visitor,
-forever. Fixed with `overflow-wrap: anywhere`
-([`487d6bc`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/487d6bc)) —
-confirmed live afterward (`scrollWidth` back to 736, matching the intended
-46rem body width) at both the desktop and 390×844 marking viewports — and
-added a grep-based regression test (`spec/layout.test.ts`) in the same
-commit, per this repo's own rule that a found bug gets a test, not just a
-patched line.
+The decision then had to land in all three places the brief marks for
+agreement
+([`a7c9b80`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/a7c9b80)).
+`README.md` says why, `CLAUDE.md` gained two rules (presence never touches disk
+and no token ever goes over the stream; a change to shared behaviour starts as
+a decision record), and `spec/live.test.ts` holds the app to it over real event
+streams. Before trusting those tests I broke the code three ways (no
+broadcast, no replay, never forgetting a closed stream), and each break failed
+the test that names it.
 
-## An untrusted cookie is a write-boundary input too, not just the POST body
+## Corrections that landed in the harness
 
-A sixth-run deepen pass asked the "what could a crafted request do" question
-(already applied to the POST body and to cookie decoding) of one more thing:
-the *length* of a cookie this server trusts as an existing identity.
-`sealToken` accepted any non-empty cookie value verbatim, with no shape
-check, and wrote it into the append-only `colophons` table on every insert
-from that visitor. Confirmed live before touching anything: a 15,000-byte
-garbage `seal` cookie landed in the `token` column byte-for-byte — unlike the
-colophon body, capped at 320 characters at the same boundary, nothing capped
-the one other piece of attacker-controlled data this app ever persists.
-Since every token this server issues is a `randomUUID()`, the fix
-([`791839c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/791839c))
-only trusts a cookie matching that exact shape; anything else gets a fresh
-real token instead, bounding the column to 36 bytes regardless of what a
-client sends. Confirmed live after the fix: the same 15,000-byte cookie now
-gets issued a fresh UUID, and the garbage is never stored. Added to
-`spec/cookie-safety.test.ts` alongside the existing malformed-cookie crash
-test, since both ask the same question of the same input at two different
-boundaries (decode safety, then shape).
+Most of what the agent got wrong surfaced by asking one question of one
+boundary at a time, and each fix left a test or a rule behind:
 
-## The static-file route, checked rather than assumed safe
+- `--seal` had drifted into three meanings besides "this colophon is yours",
+  despite the rule saying otherwise. Fixed, plus a test that greps every use
+  ([`6a3ecdf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6a3ecdf))
+- the POST body had no size cap. Two attempts at rejecting it early raced the
+  client into connection errors, caught only by repeated runs against the
+  built image, before draining the body to its end held
+  ([`abd5dc4`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/abd5dc4),
+  [`9ef7505`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/9ef7505))
+- a `seal=%` cookie crashed the whole process
+  ([`6b5e6fb`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6b5e6fb)),
+  and a 15KB one persisted forever on every colophon its sender wrote
+  ([`791839c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/791839c))
+- one unbroken word blew the page out sideways. On an append-only scroll that
+  is a permanent scar, not an annoyance
+  ([`487d6bc`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/487d6bc))
+- my own traversal test couldn't fail: `fetch` normalised `..` away before
+  sending
+  ([`e58a34c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/e58a34c))
+- the README quoted Hundred Rabbits with a phrase the interview doesn't contain
+  ([`f7d259f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f7d259f))
 
-A seventh-run deepen pass asked the same "what could a crafted request do at
-the API boundary" question of a route none of the prior six had touched:
-`GET /public/*`, which reads `.${url.pathname}` straight off disk, gated only
-by `startsWith("/public/")`. Rather than trust that WHATWG URL parsing
-collapses dot segments before that check runs, I confirmed it live against a
-running instance: plain (`/public/../README.md`), percent-encoded
-(`%2e%2e`), double-encoded (`%252e%252e`), backslash, and encoded-slash
-traversal attempts all 404 — the normalisation happens during `new URL(...)`
-construction itself, before the route's own prefix check ever sees the
-string, so a `..` segment never survives to reach the filesystem read. A
-clean result, not a bug, but worth locking in as
-[`c1c9fdf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/c1c9fdf):
-a regression test, not just a reasoned-through assumption, against whatever a
-future refactor of that route does.
+## How I directed, grounded and corrected the work
 
-A ninth-run cross-read of the whole `spec/` directory found that test was
-weaker than it claimed. `fetch` (like `curl` without `--path-as-is`) runs a
-path through the same WHATWG parser on the client side, so
-`/public/../README.md` left the test process as `/README.md`: five of its
-eight cases never sent the server a traversal at all, and the "live" check
-behind it had the same blind spot. The server was still safe — its own
-parser normalises a raw path just the same — but the test couldn't have
-failed for the reason it named. Fixed in
-[`e58a34c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/e58a34c)
-by sending each path verbatim over `node:http`. The same read surfaced a
-second gate I'd never credited: only `.avif`/`.css`/`.svg`/`.ico` are ever
-read, and nothing with those extensions exists outside `public/` in the
-image, so the route's safety rests on two independent checks, not one.
+Each run starts from the course page and `memory/now.md`, and I treat the
+hand-off's "next action" as a hypothesis rather than an order. A crit 8 run
+was told to build the real-time layer early and declined, because crit 8's
+brief said real-time could wait and the README already argued that week was
+the smallest version of the object.
 
-## Concurrent writes and the artefact's HD-band checks, both closed clean
+Grounding means checking against the real thing rather than a stand-in. The
+spec runs against the image the `Dockerfile` builds, with a throwaway `/data`
+exactly as CI does, and timing-sensitive fixes run several times before I
+trust them. Persistence was checked by restarting the live Fly machine with
+colophons already on the scroll, since a tmpfs proves nothing about
+persistence. Real-time was checked with two independent browser sessions side
+by side: a line written in one appeared in the other, marked "yours" only in
+the first. Claims in prose get the same treatment, so quotes are checked
+against a source's raw HTML rather than a summary.
 
-An eighth-run deepen pass tried two angles crit 7's own write-endpoint
-lessons name directly but this repo had never run: whether `addColophon`
-holds up under genuinely concurrent requests, and the keyboard/resize/
-slow-connection trio the course's artefact criterion names by example.
-
-`addColophon` is a single synchronous `node:sqlite` insert with no
-read-then-write check, unlike crit 7's booking overlap logic — a different
-shape of claim, but still only a reasoned one until tested. Fired 40 real
-concurrent `curl` POSTs (backgrounded shell processes, not sequential
-`await`s) at a running instance: all 40 landed, each exactly once, no
-crash, no corrupted row. Locked in as
-[`e10f004`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/e10f004):
-`spec/colophon-concurrency.test.ts`, 30 genuinely parallel `fetch` calls via
-`Promise.all`, each asserting its own marker appears exactly once on the
-page afterward.
-
-The HD-band trio, run against this app for the first time: a full keyboard
-walk from `<body>` matched DOM order (header link → scroll figure →
-textarea → submit → footer link → wraps), and a fully keyboard-driven
-submission (focus, type, Tab, Enter) landed correctly. Typing into the
-textarea, resizing live from desktop to the 390px marking viewport with no
-reload, then continuing to type and submitting, preserved both the value
-and focus with no corruption. A raw CDP script (same flatten-mode
-`attachToTarget` technique as crit 7's) throttled the connection to
-150kbps/400ms and navigated fresh: the page loaded fully styled in ~5.5s
-with no FOUC, correct title/heading/form, and no horizontal overflow —
-expected for a plain server-rendered page with no client-side hydration to
-race, but confirmed rather than assumed. All three closed clean; no fix
-needed.
-
-## A fabricated quote in the README's own sourcing
-
-A ninth-run deepen pass closed two reasoned-but-untested claims about the
-`sealGlyph`/`mine` identity logic clean — `sealGlyph` can't throw on any
-token shape (an empty-string loop just leaves its hash at 0), and `mine`
-can never false-match since both `c.token` and `ownToken` always come from
-`sealToken`, which only ever returns a validated UUID on either path — then
-turned the content-practices discipline this agent has run on every prior
-crit's prose onto `README.md`'s own three cited sources for the first time.
-Two checked out exactly: the painting attribution (Wang Yi painted the
-portrait, Ni Zan added the pine and rock, 1363, Palace Museum Beijing,
-confirmed independently) and the Met essay's "continuous dialogue" phrase
-(the source text reads "past and present in continuous dialogue"). The
-third didn't: the Hundred Rabbits bullet quoted "a lesser home-brewed tool
-tailored specifically to our own needs" as if from the cited interview —
-that exact phrase, and nothing close to it, appears anywhere in the source
-page (checked against the raw HTML, not a summary). Fixed by replacing it
-with two real quotes from the same interview ("if we can use less
-technology to solve any one task, we will"; software that "gets smaller
-over time, that sheds the superfluous") that support the same point the
-bullet was already making, rather than inventing a new one. General
-lesson, extending this agent's own standing practice: a citation with
-quotation marks is a stronger, more specific claim than a paraphrase, and
-needs the source's raw text checked directly, not just the general thrust
-of the argument.
-
-## What's next
-
-Crit 9 asks for real-time (a colophon appearing in every open session
-within about a second) and one written decision about how the app behaves
-with several people writing at once. The schema here is already the
-smallest version that can carry both: adding a broadcast on write and
-picking what happens when two people submit close together are the two
-concrete next steps, not a redesign.
+Correction means the fix lands where the next run will meet it: a `spec/` test
+for a behaviour, a `CLAUDE.md` rule for a standard, or a decision record for a
+choice someone could reasonably argue the other way.
