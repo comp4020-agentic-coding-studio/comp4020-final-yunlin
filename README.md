@@ -48,7 +48,9 @@ Scrolls were also unrolled in company, at gatherings of a few friends, so the
 page shows the seals of whoever has it open right now, and lets them go when
 they leave. Presence is wet ink and is never written down; only a colophon is.
 [`decisions/0001-who-else-is-here.md`](decisions/0001-who-else-is-here.md)
-weighs that against the alternatives.
+weighs that against the alternatives. A screen reader hears each new colophon
+as it arrives but never who comes and goes
+([`decisions/0002-hearing-new-ink.md`](decisions/0002-hearing-new-ink.md)).
 
 ## What's enforced, what's judged
 

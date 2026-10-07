@@ -12,9 +12,8 @@ centuries, nobody editing anyone else's. `README.md`
 ([`8d76d80`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/8d76d80))
 argues it from the Met's history of the format, Robin Sloan's home-cooked app
 and Hundred Rabbits. My position on that small-web writing is narrower than
-theirs: I'm less interested in an app being small than in it being _finished_
-in Sloan's sense, an object with a fixed shape that strangers add to, rather
-than a platform that keeps growing features.
+theirs: I care less about an app being small than about it being _finished_
+in Sloan's sense, a fixed shape that strangers add to.
 
 ## The stack, and what it costs
 
@@ -24,8 +23,7 @@ framework, no bundler. I checked Node 24.21 directly before committing to it:
 it runs `.ts` unmodified, and `node:sqlite` needs no native module compiled in
 Docker, so the image is one `pnpm install --prod` and the same source the repo
 typechecks. The cost is hand-written routing and a newer, less battle-tested
-SQLite binding. For five routes and no auth that's cheap, and it buys a request
-path you can read start to end in one file.
+SQLite binding. For five routes and no auth that's cheap.
 
 Real-time is server-sent events
 ([`340c133`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/340c133)).
@@ -53,9 +51,8 @@ were written at exactly such a gathering, so the page now shows the seals of
 whoever has it open and lets them go when they leave. Presence is wet ink and
 is never stored; only a colophon is. The record weighs this against a reader
 count (a metric, which the README rules out), permanent viewing marks
-(surveillance dressed as history) and typing indicators (pressure on a line the
-character limit exists to slow down). It also names the costs: presence leaks
-timing, and twelve glyphs collide.
+(surveillance dressed as history) and typing indicators, and names the costs:
+presence leaks timing, and twelve glyphs collide.
 
 The decision then had to land in all three places the brief marks for
 agreement
@@ -71,6 +68,14 @@ Chrome holds the departed page in its back-forward cache with the stream still
 open. The fix closes the stream on `pagehide`, and a new test runs the served
 script to hold it
 ([`a777b00`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/a777b00)).
+
+The first record had also left someone out: a screen-reader user heard nothing
+when another person wrote, so for them the page wasn't real-time at all. A
+second record
+([`1953a16`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/1953a16))
+extends the wet/dry split to sound, announcing new colophons but never
+arrivals, and collapsing a reconnect's replay to a count; the code followed
+([`1042539`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/1042539)).
 
 ## Corrections that landed in the harness
 
@@ -111,9 +116,8 @@ spec runs against the image the `Dockerfile` builds, with a throwaway `/data`
 exactly as CI does, and timing-sensitive fixes run several times before I
 trust them. Persistence was checked by restarting the live Fly machine with
 colophons already on the scroll, since a tmpfs proves nothing about
-persistence. Real-time was checked with two independent browser sessions side
-by side: a line written in one appeared in the other, marked "yours" only in
-the first. Claims in prose get the same treatment, so quotes are checked
+persistence. Real-time was checked with two independent browser sessions: a
+line written in one appeared in the other, marked "yours" only in the first. Claims in prose get the same treatment, so quotes are checked
 against a source's raw HTML rather than a summary.
 
 Correction means the fix lands where the next run will meet it: a `spec/` test
