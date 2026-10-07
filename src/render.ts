@@ -80,6 +80,7 @@ export function renderIndex(colophons: Colophon[], ownToken: string, error?: str
           ${colophons.map((c) => colophonEntry(c, ownToken)).join("\n          ")}
         </ol>
         ${colophons.length === 0 ? `<p class="empty-note">No one has written in the margin yet.</p>` : ""}
+        <p class="arrivals" role="status"></p>
       </section>
 
       <section aria-labelledby="write-heading">

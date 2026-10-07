@@ -95,6 +95,16 @@ figcaption {
   font-size: 0.9rem;
 }
 
+/* Read to screen readers when a colophon arrives (decisions/0002), not shown. */
+.arrivals {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .presence-seal {
   display: inline-block;
   margin-right: 0.35rem;

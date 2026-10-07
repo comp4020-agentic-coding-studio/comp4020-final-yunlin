@@ -62,3 +62,28 @@ it("presence seals are set as text, never parsed as markup", async () => {
   expect(row.textContent).toContain("<img src=x>");
   expect(dom.window.document.querySelector<HTMLElement>(".presence")!.hidden).toBe(false);
 });
+
+// decisions/0002: a screen-reader user hears new ink, never presence.
+const entry = (id: number, body: string) =>
+  JSON.stringify({ id, html: `<li data-id="${id}"><p class="colophon-body">${body}</p></li>` });
+const settle = () => new Promise((r) => setTimeout(r, 1100));
+
+it("a new colophon is announced by its text; presence changes are not", async () => {
+  const dom = await page();
+  const source = FakeEventSource.opened[0]!;
+  const status = dom.window.document.querySelector('.arrivals[role="status"]')!;
+  source.listeners.get("presence")!({ data: JSON.stringify([{ seal: "鑑", you: false }]) });
+  await settle();
+  expect(status.textContent).toBe("");
+  source.listeners.get("colophon")!({ data: entry(900000001, "pine wind") });
+  await settle();
+  expect(status.textContent).toBe("A new colophon: pine wind");
+});
+
+it("several colophons arriving at once, as on a reconnect, are announced as a count", async () => {
+  const dom = await page();
+  const source = FakeEventSource.opened[0]!;
+  for (const id of [900000002, 900000003, 900000004]) source.listeners.get("colophon")!({ data: entry(id, "x") });
+  await settle();
+  expect(dom.window.document.querySelector(".arrivals")!.textContent).toBe("3 new colophons at the end of the list");
+});

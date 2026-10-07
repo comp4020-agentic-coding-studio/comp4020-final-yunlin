@@ -5,9 +5,29 @@
 const list = document.querySelector(".colophon-list");
 const presence = document.querySelector(".presence");
 const seals = document.querySelector(".presence-seals");
+const arrivals = document.querySelector(".arrivals");
 
 let lastId = Number(list?.dataset.lastId ?? 0);
 let stream;
+
+// New colophons are announced to screen readers; presence never is
+// (decisions/0002). Arrivals within a second, such as a reconnect's replay,
+// collapse to a count.
+const ANNOUNCE_AFTER_MS = 1000;
+let pending = [];
+let announceTimer;
+
+function announce(entry) {
+  pending.push(entry.querySelector(".colophon-body")?.textContent ?? "");
+  clearTimeout(announceTimer);
+  announceTimer = setTimeout(() => {
+    arrivals.textContent =
+      pending.length === 1
+        ? `A new colophon: ${pending[0]}`
+        : `${pending.length} new colophons at the end of the list`;
+    pending = [];
+  }, ANNOUNCE_AFTER_MS);
+}
 
 function connect() {
   stream = new EventSource(`/events?after=${lastId}`);
@@ -17,6 +37,7 @@ function connect() {
     lastId = Math.max(lastId, id);
     if (list.querySelector(`[data-id="${id}"]`)) return;
     list.insertAdjacentHTML("beforeend", html);
+    announce(list.lastElementChild);
     document.querySelector(".empty-note")?.remove();
   });
 
