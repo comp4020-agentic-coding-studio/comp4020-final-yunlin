@@ -34,6 +34,16 @@ export function listColophons(): Colophon[] {
   return selectAll.all() as unknown as Colophon[];
 }
 
-export function addColophon(token: string, body: string): void {
-  insert.run(token, body, Date.now());
+const selectAfter = db.prepare("SELECT * FROM colophons WHERE id > ? ORDER BY id ASC");
+
+// The scroll is append-only, so "everything a reconnecting browser missed" is
+// exactly every row with a higher id than the last one it saw.
+export function listColophonsAfter(id: number): Colophon[] {
+  return selectAfter.all(id) as unknown as Colophon[];
+}
+
+export function addColophon(token: string, body: string): Colophon {
+  const created_at = Date.now();
+  const { lastInsertRowid } = insert.run(token, body, created_at);
+  return { id: Number(lastInsertRowid), token, body, created_at };
 }

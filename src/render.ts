@@ -32,10 +32,10 @@ function layout(title: string, body: string): string {
 `;
 }
 
-function colophonEntry(c: Colophon, ownToken: string): string {
+export function colophonEntry(c: Colophon, ownToken: string): string {
   const mine = c.token === ownToken;
   const glyph = sealGlyph(c.token);
-  return `<li class="colophon${mine ? " colophon--mine" : ""}">
+  return `<li class="colophon${mine ? " colophon--mine" : ""}" data-id="${c.id}">
         <span class="colophon-seal" aria-hidden="true">${glyph}</span>
         <p class="colophon-body">${escapeHtml(c.body)}</p>
         <p class="colophon-date">${dateFmt.format(new Date(c.created_at))}${mine ? " — yours" : ""}</p>
@@ -75,7 +75,8 @@ export function renderIndex(colophons: Colophon[], ownToken: string, error?: str
           Oldest first, the way a scroll unrolls. Yours is marked once it's here — nothing
           you write can be edited or taken back, the same as ink.
         </p>
-        <ol class="colophon-list">
+        <p class="presence" hidden>Looking now: <span class="presence-seals"></span></p>
+        <ol class="colophon-list" data-last-id="${colophons.at(-1)?.id ?? 0}">
           ${colophons.map((c) => colophonEntry(c, ownToken)).join("\n          ")}
         </ol>
         ${colophons.length === 0 ? `<p class="empty-note">No one has written in the margin yet.</p>` : ""}
@@ -101,6 +102,7 @@ export function renderIndex(colophons: Colophon[], ownToken: string, error?: str
       <p>Your seal on this page is <strong>${sealGlyph(ownToken)}</strong> — remembered by
         your browser, not by a name. <a href="/readme/">Read more.</a></p>
     </footer>
+    <script src="/public/live.js" defer></script>
   `;
 
   return layout("Colophon", body);

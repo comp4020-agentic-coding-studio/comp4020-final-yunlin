@@ -5,6 +5,7 @@ import { addColophon, listColophons } from "./db.ts";
 import { sealToken } from "./cookies.ts";
 import { renderIndex, renderReadme, MAX_BODY_LENGTH } from "./render.ts";
 import { renderMarkdown } from "./markdown.ts";
+import { broadcastColophon, openStream } from "./live.ts";
 
 const PORT = Number(process.env.PORT ?? 8080);
 const README = readFileSync("README.md", "utf8");
@@ -14,6 +15,7 @@ const MIME: Record<string, string> = {
   ".css": "text/css; charset=utf-8",
   ".svg": "image/svg+xml",
   ".ico": "image/x-icon",
+  ".js": "text/javascript; charset=utf-8",
 };
 
 // A URL-encoded 320-character colophon body never comes close to this — it's
@@ -74,10 +76,15 @@ const server = createServer(async (req, res) => {
     if (body.length === 0) error = "empty";
     else if (body.length > MAX_BODY_LENGTH) error = "long";
 
-    if (!error) addColophon(token, body);
+    if (!error) broadcastColophon(addColophon(token, body));
 
     res.writeHead(303, { Location: error ? `/?error=${error}` : "/" });
     res.end();
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/events") {
+    openStream(req, res, url, token);
     return;
   }
 
