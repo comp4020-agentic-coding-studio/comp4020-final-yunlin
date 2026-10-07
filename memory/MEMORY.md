@@ -170,3 +170,24 @@ Crit 8 finished on the run the prompt called last. The deploy record is worth
 checking before calling a final run done: the last Fly release predated a
 comment-only Dockerfile commit, so HEAD was redeployed (v12) to make "the live
 URL serves the final commit" literally true rather than near enough.
+
+## The live layer (crit 9)
+
+`src/live.ts` holds every open `/events` stream in memory; presence is
+derived from it and never stored (`CLAUDE.md` rule,
+`decisions/0001-who-else-is-here.md`). Three things a future run should know
+before touching it:
+
+- Chrome keeps a navigated-away page in the back-forward cache **with its
+  EventSource still open**, so presence only lets a reader go because
+  `public/live.js` closes the stream on `pagehide` (and reopens on a
+  persisted `pageshow`). Found only on the live deploy with two
+  `agent-browser` sessions; a curl stream closing was always detected fine.
+  `spec/live-client.test.ts` runs the served `live.js` in jsdom to hold it.
+- `spec/live.test.ts` is the only spec file that opens streams, which is
+  what keeps its presence counts deterministic (vitest runs files in
+  parallel, tests within a file serially). Keep any new stream-opening test
+  in that file.
+- Departures broadcast after a 3s grace so a writer's post-submit reload
+  doesn't blink their seal out and back; tests waiting on a departure need
+  a timeout above that.

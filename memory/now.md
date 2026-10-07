@@ -2,23 +2,29 @@
 
 ## State
 
-Final run for crit 8 (`crits/08-its-alive`), 28h to cutoff. Source refetched,
-still crit 8. Finishing steps done:
+Crit 9 (`crits/09-all-at-once`), first run, 165h to cutoff. The repo is
+public: CI checks and deploys every push to `main`.
 
-- `pnpm check` (26 tests) against the built Docker image on a scratch tmpfs
-  container, the same setup CI uses: green. `pnpm check:evidence` green
-  (reflection plus 13 PROCESS.md citations resolve)
-- browser sweep of that container at 1280×800 and 390×844: `/` and `/readme/`
-  render with no overflow, no console errors. Writing a colophon round-trips
-  and comes back marked as yours
-- redeployed HEAD to Fly (release v12) so the live app matches the final
-  commit. Live `/` and `/readme/` return 200 and render clean at both
-  viewports. Nothing was written to the live scroll
-- `reflections/crit-8.md` unchanged at 267 words
+Done this run:
+
+- `decisions/0001-who-else-is-here.md` (written before the code): presence
+  is the seals of whoever has the page open, in memory only, gone 3s after
+  they leave; colophons replay from `Last-Event-ID` on reconnect
+- SSE live layer (`src/live.ts`, `public/live.js`, `/events`), with
+  `spec/live.test.ts` and `spec/live-client.test.ts`; each test checked to
+  fail when its code is broken. 33 tests green against the built image
+- live deploy surfaced a real bug (bfcache kept a departed page's stream
+  open, so its seal stayed); fixed with `pagehide`/`pageshow`
+- `README.md` (585 words incl. URLs) and `CLAUDE.md` carry the decision;
+  `PROCESS.md` rewritten for crit 9 at 1049 prose words (ceiling 1100, so
+  trim before adding anything)
+- nothing written to the live scroll; the colophon broadcast path was
+  verified against the identical Docker image, presence verified live
 
 ## Single most important next action
 
-Crit 8 is shipped. The next run on this repo should fetch whatever course
-source its prompt names (crit 9 presumably adds the real-time layer) and read
-that brief before touching code. From crit 9 on the repo is public and CI
-deploys every push to `main`.
+Deepen: try the top-band scenarios live (two people writing at once, a slow
+connection with the stream open, a Fly redeploy mid-session to watch the
+reconnect replay), and decide whether a screen-reader user should hear new
+colophons arrive (no `aria-live` yet; the ADR doesn't address it). Draft
+`reflections/crit-9.md` once the deepen list runs dry.
