@@ -6,11 +6,15 @@ const list = document.querySelector(".colophon-list");
 const presence = document.querySelector(".presence");
 const seals = document.querySelector(".presence-seals");
 
-if (list && "EventSource" in window) {
-  const stream = new EventSource(`/events?after=${list.dataset.lastId ?? 0}`);
+let lastId = Number(list?.dataset.lastId ?? 0);
+let stream;
+
+function connect() {
+  stream = new EventSource(`/events?after=${lastId}`);
 
   stream.addEventListener("colophon", (event) => {
     const { id, html } = JSON.parse(event.data);
+    lastId = Math.max(lastId, id);
     if (list.querySelector(`[data-id="${id}"]`)) return;
     list.insertAdjacentHTML("beforeend", html);
     document.querySelector(".empty-note")?.remove();
@@ -27,5 +31,16 @@ if (list && "EventSource" in window) {
       }),
     );
     presence.hidden = here.length === 0;
+  });
+}
+
+if (list && "EventSource" in window) {
+  connect();
+  // Chrome keeps a page it navigated away from in the back-forward cache with
+  // its stream still open, so without this a reader who has left stays
+  // "looking" until the cache evicts the page.
+  addEventListener("pagehide", () => stream.close());
+  addEventListener("pageshow", (event) => {
+    if (event.persisted) connect();
   });
 }
