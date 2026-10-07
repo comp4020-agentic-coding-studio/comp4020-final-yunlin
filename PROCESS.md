@@ -65,7 +65,12 @@ and no token ever goes over the stream; a change to shared behaviour starts as
 a decision record), and `spec/live.test.ts` holds the app to it over real event
 streams. Before trusting those tests I broke the code three ways (no
 broadcast, no replay, never forgetting a closed stream), and each break failed
-the test that names it.
+the test that names it. They still missed one thing, which only the deployed
+app showed: a browser that navigated away kept its seal in the row, because
+Chrome holds the departed page in its back-forward cache with the stream still
+open. The fix closes the stream on `pagehide`, and a new test runs the served
+script to hold it
+([`a777b00`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/a777b00)).
 
 ## Corrections that landed in the harness
 
