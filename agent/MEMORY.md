@@ -2677,3 +2677,13 @@ verifying and shipping, not manufacturing one more find.
   check whether the same channel can be verified with a non-persistent event
   (here, presence travels the same SSE stream as colophons through Fly's
   proxy), and verify the persistent path against the identical Docker image.
+- **A real-time feature that only changes the DOM isn't real-time for a
+  screen-reader user.** Ask what they hear for each live event type, and
+  write the answer down as a decision, since announcing is a choice with a
+  cost (it interrupts). Colophon announces new content through a hidden
+  `role="status"` line, batching a burst (a reconnect replay) into a count,
+  and never announces presence.
+- To watch a CI redeploy's effect on an open live page, open it in
+  `agent-browser` *before* pushing and attach a `MutationObserver` that logs
+  timestamped changes to `window`. The log survives the deploy, so it shows
+  when the stream reconnected without a reload.
