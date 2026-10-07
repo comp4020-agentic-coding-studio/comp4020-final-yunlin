@@ -191,3 +191,11 @@ before touching it:
 - Departures broadcast after a 3s grace so a writer's post-submit reload
   doesn't blink their seal out and back; tests waiting on a departure need
   a timeout above that.
+
+## Live-layer accessibility is its own decision record
+
+`decisions/0002-hearing-new-ink.md`: new colophons are announced through a
+visually hidden `role="status"` line (`.arrivals`); presence is never
+announced. Arrivals within a second collapse to a count, so a reconnect's
+replay isn't read out line by line. Any new live event type needs the same
+question asked: does a screen-reader user hear it, and should they?
