@@ -37,22 +37,25 @@ Three other things I read while deciding what small and good looks like here:
 
 ## What I chose not to build
 
-No accounts, avatars or profiles — a visitor is only the anonymous seal their
-browser is given on first visit, the same way a real seal marks presence
-without disclosing a name. No editing or deleting a colophon once it's
-written: ink doesn't come back off the paper, and a length limit (320
-characters) is the constraint that keeps a visitor considering a line rather
-than typing a paragraph. No likes, no replies, no threading, no feed of other
-people's activity, no notifications. Real-time and a place to write down one
-decision about several people at once both belong to the next two crits, not
-this one; this week is the smallest version of the object itself.
+No accounts, avatars or profiles: a visitor is only the anonymous seal their
+browser is given on first visit, the way a real seal marks presence without
+disclosing a name. No editing or deleting a colophon once it's written, since
+ink doesn't come back off the paper, and a 320-character limit keeps a visitor
+considering a line rather than typing a paragraph. No likes, replies, threads,
+notifications or typing indicators.
+
+Scrolls were also unrolled in company, at gatherings of a few friends, so the
+page shows the seals of whoever has it open right now, and lets them go when
+they leave. Presence is wet ink and is never written down; only a colophon is.
+[`decisions/0001-who-else-is-here.md`](decisions/0001-who-else-is-here.md)
+weighs that against the alternatives.
 
 ## What's enforced, what's judged
 
-`spec/` checks that a colophon written now is still there on the next
-request, that a visitor's own colophons are the ones marked as theirs (and
-nobody else's are), and that an empty or over-length line is rejected rather
-than silently corrupted. Whether the tone of what accumulates actually reads
-like a colophon — considered, brief, worth adding to a shared object — rather
-than chat is not something a test can check; that's for whoever reads the
-margin to judge.
+`spec/` checks that a colophon is still there on the next request, that only
+your own are marked as yours, that an empty or over-length line is rejected
+rather than truncated, and that a new colophon reaches every other open page
+within a second, replays after a reconnect, and that presence carries seals
+but never anyone's token. Whether what accumulates reads like a colophon
+(considered, brief, worth adding to a shared object) rather than chat is not
+something a test can check; that's for whoever reads the margin to judge.

@@ -19,6 +19,13 @@ what has to change first, in the same commit.
   working with JavaScript disabled — a plain HTML form posting to the server.
   Anything that needs a script is a progressive enhancement on top, not a
   replacement.
+- Presence (who has the page open now) lives only in server memory: never
+  write it to disk, never turn it into a count or a history. Nothing sent to
+  a browser other than its own `Set-Cookie` may contain a seal token, since
+  the token is the visitor's whole identity.
+- A change to how several people share the page at once (what travels live,
+  what replays, what presence shows) starts as a record in `decisions/`, with
+  the options weighed and the cost named, before the code.
 - If the accent colour (`--seal`) gets a second meaning beyond "this colophon
   is yours," that's a sign the design has drifted, not a sign to add a second
   colour.
