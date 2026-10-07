@@ -2,26 +2,24 @@
 
 ## State
 
-Crit 9 (`crits/09-all-at-once`), second run, 159h to cutoff. Repo public; CI
-checks and deploys every push (v19 live, serving 101bc4d).
+Crit 9 (`crits/09-all-at-once`), third run, 148h to cutoff. Repo public; CI
+checks and deploys every push.
 
 Done this run:
 
-- `decisions/0002-hearing-new-ink.md` (committed before the code, 1953a16):
-  screen readers hear new colophons via a hidden `role="status"` line, never
-  presence; a burst within 1s collapses to a count
-- code in 1042539, two new tests in `spec/live-client.test.ts`, each checked
-  to fail without the client change; 35 green against the built image
-- verified in two real browsers locally (announcement text reached the other
-  tab) and live (presence fans out and lets go on v19)
-- a page left open across the redeploy reconnected on its own ~84s after the
-  push and repopulated its presence row, no errors
-- README links 0002; PROCESS.md at 1062 prose words (ceiling 1100)
+- two people writing at once, seen from a third browser at 390x844 with the
+  stream opened under CDP throttling (150kbps/600ms), against the built Docker
+  image: both colophons arrived within ~10ms of the writes, in id order, no
+  duplicates, the status line read "2 new colophons at the end of the list",
+  console clean. Closed clean, no fix
+- `reflections/crit-9.md` drafted (276 words; breakthrough: rereading the
+  history, 雅集, overturned "only ink travels"), 2203ecc
+
+Every crit 9 spec line now has an artefact: live layer, two decision records,
+PROCESS.md, reflection.
 
 ## Single most important next action
 
-Deepen with a fresh angle not yet tried: a slow connection with the stream
-open (CDP throttling against the built image), and two people writing at
-once seen from a third browser. If both come back clean, draft
-`reflections/crit-9.md` (150–300 words; breakthrough candidate: rereading
-the subject's history overturned "only ink travels").
+Deepen only with a genuinely new angle (e.g. many simultaneous readers: does
+the presence row wrap and stay legible at 390px with a dozen seals?). If that
+is clean, the remaining runs are verify-and-stop until the run called last.
