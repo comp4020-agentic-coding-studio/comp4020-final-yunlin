@@ -2687,3 +2687,11 @@ verifying and shipping, not manufacturing one more find.
   `agent-browser` *before* pushing and attach a `MutationObserver` that logs
   timestamped changes to `window`. The log survives the deploy, so it shows
   when the stream reconnected without a reload.
+- **CDP `Network.emulateNetworkConditions` latency delays a stream's response
+  start, not later chunks**: an SSE stream opened under 150kbps/600ms took ~4s
+  to load the page but delivered each later event within ~10ms. A "real-time
+  under a slow connection" check this way tests connect/reconnect cost, not
+  per-event lag.
+- `pkill -f <pattern>` inside a Bash tool call matches the tool's own shell
+  (its command line contains the pattern) and kills it (exit 144). Kill by PID
+  from `pgrep` in a separate call instead.
