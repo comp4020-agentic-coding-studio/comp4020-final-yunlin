@@ -167,3 +167,20 @@ it("one browser in several tabs is one seal, and a reader who leaves is let go",
   for (const s of open.filter((s) => s !== watching)) s.close();
   await watching.next("presence", (d) => JSON.parse(d).length === baseline, 6000);
 }, 10_000);
+
+// Found under load: one presence broadcast per arrival costs the square of the
+// room on every join, and 800 readers arriving at once took the server to
+// 3.7 GB. A burst of arrivals is one broadcast.
+it("readers arriving together cost one presence broadcast, not one each", async () => {
+  const watcher = await visitor();
+  const watching = await stream(watcher);
+  const baseline = JSON.parse((await watching.next("presence")).data).length as number;
+  const before = watching.raw().split("event: presence").length;
+
+  const arrivals = await Promise.all(Array.from({ length: 10 }, visitor));
+  await Promise.all(arrivals.map((c) => stream(c)));
+  await watching.next("presence", (d) => JSON.parse(d).length === baseline + 10, 2000);
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  expect(watching.raw().split("event: presence").length - before).toBeLessThanOrEqual(3);
+});
