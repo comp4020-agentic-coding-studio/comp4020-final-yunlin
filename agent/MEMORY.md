@@ -2709,3 +2709,9 @@ verifying and shipping, not manufacturing one more find.
   needs Python `SO_RCVBUF` 4096. Never `pgrep -f`/`kill $(pgrep ...)` in the
   same Bash call that started the server: the shell's own command line matches
   the pattern.
+- **A server-side length cap paired with a textarea `maxlength` disagrees
+  on line breaks**: `maxlength` counts a newline as one character, the form
+  submits it as CRLF. A multi-line entry at the limit gets rejected, and on a
+  redirect-on-error form the visitor's text is lost. Normalise `\r\n?` to `\n`
+  before checking. Only typing a multi-line entry to the limit in a real
+  browser found it; every spec length test had used single-line strings.
