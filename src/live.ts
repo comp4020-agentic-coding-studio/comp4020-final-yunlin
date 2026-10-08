@@ -12,6 +12,7 @@ import { sealGlyph } from "./seal.ts";
 interface Client {
   res: ServerResponse;
   token: string;
+  maxBuffered: number;
 }
 
 const clients = new Set<Client>();
@@ -20,20 +21,36 @@ const clients = new Set<Client>();
 // would blink out and back for everyone else on every colophon.
 const LEAVE_GRACE_MS = 3000;
 const HEARTBEAT_MS = 20_000;
+// A burst of arrivals or departures becomes one presence broadcast, not one
+// per reader: per-reader broadcasts cost the square of the room on every join.
+const PRESENCE_COALESCE_MS = 100;
+// A stream that stops reading would otherwise buffer every broadcast in this
+// process's memory forever. Dropping it loses nothing a real browser cares
+// about: it reconnects and replays from Last-Event-ID.
+const MAX_BUFFERED_BYTES = 64 * 1024;
+
+function write(c: Client, chunk: string): void {
+  c.res.write(chunk);
+  if (c.res.writableLength > c.maxBuffered) c.res.destroy();
+}
 
 function send(c: Client, event: string, data: unknown, id?: number): void {
-  c.res.write(`${id === undefined ? "" : `id: ${id}\n`}event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  write(c, `${id === undefined ? "" : `id: ${id}\n`}event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
 }
 
 // Seals only, never tokens: a token is the visitor's whole identity, and
 // anyone holding it could write as them.
-function presenceFor(viewer: Client): { seal: string; you: boolean }[] {
-  const tokens = new Set([...clients].map((c) => c.token));
-  return [...tokens].map((t) => ({ seal: sealGlyph(t), you: t === viewer.token }));
+function broadcastPresence(): void {
+  const here = [...new Set([...clients].map((c) => c.token))].map((t) => ({ token: t, seal: sealGlyph(t) }));
+  for (const c of clients) send(c, "presence", here.map(({ token, seal }) => ({ seal, you: token === c.token })));
 }
 
-function broadcastPresence(): void {
-  for (const c of clients) send(c, "presence", presenceFor(c));
+let presenceTimer: NodeJS.Timeout | undefined;
+function schedulePresence(): void {
+  presenceTimer ??= setTimeout(() => {
+    presenceTimer = undefined;
+    broadcastPresence();
+  }, PRESENCE_COALESCE_MS);
 }
 
 function colophonEvent(c: Client, colophon: Colophon): void {
@@ -59,7 +76,7 @@ export function openStream(req: IncomingMessage, res: ServerResponse, url: URL, 
   });
   res.write("retry: 2000\n\n");
 
-  const client: Client = { res, token };
+  const client: Client = { res, token, maxBuffered: MAX_BUFFERED_BYTES };
 
   // The page says what it rendered up to (?after=); a browser reconnecting on
   // its own says what it last received (Last-Event-ID). Whichever is later.
@@ -67,15 +84,21 @@ export function openStream(req: IncomingMessage, res: ServerResponse, url: URL, 
   const fromHeader = parseId(req.headers["last-event-id"]);
   const after = Math.max(...[fromQuery, fromHeader].filter(Number.isFinite), -1);
   // Replay and joining the set happen in one synchronous run, so no colophon
-  // written in between can fall through the gap.
+  // written in between can fall through the gap. The replay is written before
+  // the browser has read any of it, so the backlog cap stretches to cover it
+  // until the socket first drains: a reader back after a long absence would
+  // otherwise be dropped by their own catch-up.
+  client.maxBuffered = Infinity;
   if (after >= 0) for (const c of listColophonsAfter(after)) colophonEvent(client, c);
+  client.maxBuffered = MAX_BUFFERED_BYTES + res.writableLength;
+  res.once("drain", () => (client.maxBuffered = MAX_BUFFERED_BYTES));
   clients.add(client);
-  broadcastPresence();
+  schedulePresence();
 
-  const heartbeat = setInterval(() => res.write(": keep-alive\n\n"), HEARTBEAT_MS);
+  const heartbeat = setInterval(() => write(client, ": keep-alive\n\n"), HEARTBEAT_MS);
   req.on("close", () => {
     clearInterval(heartbeat);
     clients.delete(client);
-    setTimeout(broadcastPresence, LEAVE_GRACE_MS);
+    setTimeout(schedulePresence, LEAVE_GRACE_MS);
   });
 }
