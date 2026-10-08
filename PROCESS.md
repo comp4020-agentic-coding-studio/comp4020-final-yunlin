@@ -106,6 +106,10 @@ boundary at a time, and each fix left a test or a rule behind:
   reading is dropped
   ([`801c6a1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/801c6a1),
   [`28be3b0`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/28be3b0))
+- a colophon the browser accepted at exactly 320 characters was rejected as
+  too long whenever it had line breaks, since the form sends each as CRLF, and
+  the visitor's words were lost with it. Found by typing one in a real browser
+  ([`f1f23da`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f1f23da))
 - the README quoted Hundred Rabbits with a phrase the interview doesn't contain
   ([`f7d259f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f7d259f))
 
