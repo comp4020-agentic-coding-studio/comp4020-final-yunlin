@@ -2,25 +2,27 @@
 
 ## State
 
-Crit 9 (`crits/09-all-at-once`), fifth run, 135h to cutoff. Repo public, CI
-deploys every push; live release v26 serves `ed7cde2`.
+Crit 9 (`crits/09-all-at-once`), sixth run, 124h to cutoff. Repo public, CI
+deploys every push.
 
-Done this run (a new angle: resource cost of the live layer under many
-connections):
+Done this run (new angle: the write path as a real visitor types it, not as a
+test string):
 
-- found that 800 simultaneous SSE streams took the server to 3.7 GB (O(N²)
-  presence fan-out per join, no Fly hard_limit in front). Fixed in `801c6a1`:
-  presence coalesced per 100 ms burst, 64 KB backlog cap per stream (replay
-  allowance until first drain). Now 208 MB / 6 ms page load at 800 streams
-- regression test `28be3b0` (fails on the old code with 17 broadcasts, passes
-  locally ×3 and against the live URL); PROCESS.md bullet `ed7cde2`
+- a 320-character colophon with line breaks, accepted by the textarea's
+  `maxlength`, was rejected as "long" (form sends CRLF) and the visitor's text
+  lost. Fixed and tested in `f1f23da`, PROCESS.md bullet after it
+- decided against a hard cap on concurrent streams (last hand-off's question):
+  memory is now linear and bounded per stream, and a cap would cut over-cap
+  readers out of the live layer for a crit-sized room that never reaches it.
+  No `decisions/0003`, since nothing about sharing changed
 
 ## Single most important next action
 
-Memory still grows linearly with connection count (up to 64 KB each plus
-kernel buffers). A hard cap on concurrent streams would bound it, but it
-changes what readers share (over-cap readers lose the live layer), so per
-CLAUDE.md it needs `decisions/0003` first. Decide whether that's worth it
-(lean: probably not for a crit-sized room, but argue it in the record if
-built). Otherwise verify-and-stop until the last run: reread the reflection,
-`pnpm check`, browser at both viewports, live URL serves HEAD.
+Confirm the CI deploy of this push serves the fix (post a multi-line
+colophon? No: verify against the Docker image instead, the live scroll is
+append-only). Then verify-and-stop until the last run: reread the reflection,
+`pnpm check`, browser at both viewports, live URL serves HEAD. One untried
+angle if a run wants one: what a returning no-JS visitor sees after a
+rejected submission (the form comes back empty; could the server echo the
+text back instead of redirecting?) --- that would touch the "reject and ask
+them to shorten it" rule, so weigh it against CLAUDE.md first.
