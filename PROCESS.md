@@ -100,6 +100,12 @@ boundary at a time, and each fix left a test or a rule behind:
 - my own traversal test couldn't fail: `fetch` normalised `..` away before
   sending
   ([`e58a34c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/e58a34c))
+- every reader's arrival sent the whole room's presence to the whole room, so
+  800 streams opened at once took the server to 3.7 GB against a 256 MB
+  machine. Presence now goes out once per burst, and a stream that stops
+  reading is dropped
+  ([`801c6a1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/801c6a1),
+  [`28be3b0`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/28be3b0))
 - the README quoted Hundred Rabbits with a phrase the interview doesn't contain
   ([`f7d259f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f7d259f))
 
