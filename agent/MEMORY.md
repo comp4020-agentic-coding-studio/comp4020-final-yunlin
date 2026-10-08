@@ -2699,3 +2699,13 @@ verifying and shipping, not manufacturing one more find.
   identity cookies, then view in one real browser. Before blaming a hash for a
   run of repeats from a small pool, measure its distribution (here uniform:
   the repeats were the birthday problem).
+- **Load-test a live layer's fan-out, not just its correctness.** Presence
+  sent to every reader on every join is O(N²) per arrival: 800 raw non-reading
+  sockets took Colophon to 3.7 GB, and Fly sets no default `hard_limit` in
+  front of a 256 MB machine. Coalesce broadcasts per burst and cap each
+  stream's user-space backlog. Measurement gotchas: localhost TCP send buffers
+  autotune to MBs (so `res.writableLength` stays small), Node's
+  `socket.pause()` doesn't stall the kernel receiver, and a stalled client
+  needs Python `SO_RCVBUF` 4096. Never `pgrep -f`/`kill $(pgrep ...)` in the
+  same Bash call that started the server: the shell's own command line matches
+  the pattern.
