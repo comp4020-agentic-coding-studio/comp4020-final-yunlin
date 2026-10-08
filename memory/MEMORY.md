@@ -205,3 +205,21 @@ To load-test the presence row without a browser per reader, open many
 seal, then view the page in one real browser. Fifteen seals wrap cleanly at
 390px. With twelve glyphs, repeats in a room of five are the birthday problem
 (likelier than not), not a skewed hash; the hash measured uniform.
+
+## Presence fan-out under load: coalesce, and cap what a stalled stream holds
+
+Sending the whole room's presence to the whole room on every join costs
+O(N²) bytes per arrival. 800 raw sockets opened at once (Python, `SO_RCVBUF`
+4096, never reading) took a local server from 93 MB to 3.7 GB RSS, with the
+page taking 8 s. Fly sets no default `hard_limit`, so nothing in front of the
+256 MB machine bounds N. Fixed by coalescing presence into one broadcast per
+100 ms burst (208 MB, 6 ms) plus a 64 KB per-stream backlog cap that stretches
+to cover a reconnect's replay until the first `drain`. Guarded by a black-box
+test in `spec/live.test.ts` that counts presence events during a burst of 10
+arrivals; it fails on the old code (17 events) and passes live.
+
+How to measure it: on Linux localhost, TCP send buffers autotune to MBs, so
+a stalled stream's bytes sit in the kernel and `res.writableLength` stays
+small. Node's `socket.pause()` doesn't stall the receiver either (its kernel
+rcvbuf grows). To check the user-space cap fires, drive `openStream` in-process
+with a fake response object.

@@ -2,26 +2,25 @@
 
 ## State
 
-Crit 9 (`crits/09-all-at-once`), fourth run, 141h to cutoff. Repo public; CI
-checks and deploys every push. Live URL answers 200.
+Crit 9 (`crits/09-all-at-once`), fifth run, 135h to cutoff. Repo public, CI
+deploys every push; live release v26 serves `ed7cde2`.
 
-Every crit 9 spec line has an artefact: live layer, two decision records,
-PROCESS.md, `reflections/crit-9.md` (drafted, 276 words).
+Done this run (a new angle: resource cost of the live layer under many
+connections):
 
-Done this run:
-
-- many simultaneous readers: 14 curl streams with distinct seal cookies plus
-  one browser at 390x844 against a scratch local server. The presence row
-  held 15 seals, wrapped to two lines, no horizontal overflow (scrollWidth
-  390), legible. Closed clean, no fix
-- the seal hash is uniform across the 12 glyphs (120k random UUIDs, each
-  ~10k); a run of duplicate glyphs in a small room is the birthday problem,
-  already a named cost in `decisions/0001`, not a skewed hash
+- found that 800 simultaneous SSE streams took the server to 3.7 GB (O(N²)
+  presence fan-out per join, no Fly hard_limit in front). Fixed in `801c6a1`:
+  presence coalesced per 100 ms burst, 64 KB backlog cap per stream (replay
+  allowance until first drain). Now 208 MB / 6 ms page load at 800 streams
+- regression test `28be3b0` (fails on the old code with 17 broadcasts, passes
+  locally ×3 and against the live URL); PROCESS.md bullet `ed7cde2`
 
 ## Single most important next action
 
-The deepen list is dry across both standing lenses (crafted input, live
-layer). Unless a genuinely new angle presents itself, remaining runs are
-verify-and-stop until the run the prompt calls last, which finishes: reread
-the reflection, `pnpm check`, browser pass at both viewports, confirm the
-live URL serves HEAD.
+Memory still grows linearly with connection count (up to 64 KB each plus
+kernel buffers). A hard cap on concurrent streams would bound it, but it
+changes what readers share (over-cap readers lose the live layer), so per
+CLAUDE.md it needs `decisions/0003` first. Decide whether that's worth it
+(lean: probably not for a crit-sized room, but argue it in the record if
+built). Otherwise verify-and-stop until the last run: reread the reflection,
+`pnpm check`, browser at both viewports, live URL serves HEAD.
