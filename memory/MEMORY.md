@@ -199,3 +199,9 @@ visually hidden `role="status"` line (`.arrivals`); presence is never
 announced. Arrivals within a second collapse to a count, so a reconnect's
 replay isn't read out line by line. Any new live event type needs the same
 question asked: does a screen-reader user hear it, and should they?
+
+To load-test the presence row without a browser per reader, open many
+`curl -sN -H "Cookie: seal=<uuid>" <host>/events` streams, each a distinct
+seal, then view the page in one real browser. Fifteen seals wrap cleanly at
+390px. With twelve glyphs, repeats in a room of five are the birthday problem
+(likelier than not), not a skewed hash; the hash measured uniform.
