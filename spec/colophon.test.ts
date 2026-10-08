@@ -70,6 +70,23 @@ function entryFor(text: string, marker: string): string {
   return text.slice(at, end);
 }
 
+// A textarea's maxlength counts a line break as one character, but the form
+// submits it as CRLF: a line the browser accepted at exactly the limit once
+// arrived as more than the limit, was rejected as too long, and the visitor's
+// text was gone.
+it("a colophon at the limit with line breaks is accepted as the browser sent it", async () => {
+  const { cookie } = await index();
+  const marker = `crlf-${Date.now()}`;
+  const lines = [marker, "b".repeat(100), "c".repeat(100)];
+  const atLimit = [...lines, "d".repeat(320 - lines.join("\n").length - 1)].join("\r\n");
+  expect(atLimit.replace(/\r\n/g, "\n")).toHaveLength(320);
+
+  const res = await write(atLimit, cookie);
+  expect(res.headers.get("location")).toBe("/");
+  const { text } = await index(cookie);
+  expect(text).toContain(lines.join("\n"));
+});
+
 it("a colophon reads as mine only for the browser that wrote it", async () => {
   const marker = `mine-check-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const { cookie: author } = await index();

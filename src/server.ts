@@ -70,7 +70,9 @@ const server = createServer(async (req, res) => {
       return;
     }
     const params = new URLSearchParams(raw);
-    const body = (params.get("body") ?? "").trim();
+    // A form submits each line break as CRLF, but the textarea's maxlength
+    // counted it as one character; count and store it the way the visitor saw it.
+    const body = (params.get("body") ?? "").replace(/\r\n?/g, "\n").trim();
 
     let error: string | undefined;
     if (body.length === 0) error = "empty";
