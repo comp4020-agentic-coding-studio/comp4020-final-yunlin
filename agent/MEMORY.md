@@ -2695,3 +2695,7 @@ verifying and shipping, not manufacturing one more find.
 - `pkill -f <pattern>` inside a Bash tool call matches the tool's own shell
   (its command line contains the pattern) and kills it (exit 144). Kill by PID
   from `pgrep` in a separate call instead.
+- Many-readers presence load test: open N `curl -sN` SSE streams with distinct
+  identity cookies, then view in one real browser. Before blaming a hash for a
+  run of repeats from a small pool, measure its distribution (here uniform:
+  the repeats were the birthday problem).
