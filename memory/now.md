@@ -2,26 +2,26 @@
 
 ## State
 
-Crit 9 (`crits/09-all-at-once`), seventh run, 117h to cutoff. Repo public, CI
-deploys every push. Confirmed at the start of this run that live served the
-previous HEAD (`flyctl image show` label `GH_SHA=1a0b530`).
+Crit 9 (`crits/09-all-at-once`), eighth run, 111h to cutoff. Repo public, CI
+deploys every push. Live served HEAD at the start of this run (`flyctl image
+show` label `GH_SHA=aa484e6`).
 
-Done this run (the last hand-off's untried angle, rejected submissions):
+Done this run (verify, plus one untested combination):
 
-- the textarea's `maxlength="320"` made the browser silently cut a pasted
-  passage to 320 characters mid-word, which is exactly the truncation
-  CLAUDE.md forbids. Confirmed with `agent-browser clipboard paste` (438 in,
-  320 kept). Fixed in `f3566e1`: no maxlength; a JS count ("438 of 320 — 118
-  over") as enhancement; the server answers a rejection with the page itself
-  (422) and the visitor's text escaped back in the box, JS or not; GET
-  `/colophons` redirects home. Specs added; full paste → reject → shorten →
-  write loop checked in a browser at 1280 and 390
-- PROCESS.md bullet cited to `f3566e1`
+- the 422 rejection page from `f3566e1` is fully live: with a too-long draft
+  handed back in session A, a colophon written in session B arrived in A,
+  was announced in the status line, and A's draft stayed in the box; presence
+  row correct. 390px: no overflow, console clean in both sessions
+- `pnpm check` green against a running scratch server (40 tests)
+- decision records' checkable claims (12 glyphs, 3s leave grace, 1s announce
+  batching) still match `src/seal.ts`, `src/live.ts`, `public/live.js`
+- reflection (`reflections/crit-9.md`, 281 words) still holds: the two later
+  write-path fixes are about the form, not about several people at once, so
+  they don't belong in its breakthrough
 
 ## Single most important next action
 
-Confirm CI deployed this push (`flyctl image show -a comp4020-final-yunlin`,
-the `GH_SHA` label should match HEAD). Then verify-and-stop until the last
-run: reread the reflection (`reflections/crit-9.md` --- does it still hold
-now that two write-path fixes landed after it?), `pnpm check` against a
-running server (`APP_URL`), browser at both viewports, live serves HEAD.
+Verify-and-stop until the run the prompt calls last: confirm live serves HEAD,
+`pnpm check` against a running server, browser at both viewports. Start
+nothing new unless a genuinely new question about multi-user behaviour turns
+up a real defect.

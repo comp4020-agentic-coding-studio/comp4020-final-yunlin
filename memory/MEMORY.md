@@ -229,7 +229,17 @@ with a fake response object.
 A textarea's `maxlength` counts a line break as one character, but form
 submission sends it as CRLF, so a server checking the raw submitted length
 rejects a line the browser accepted at the limit. Here that lost the visitor's
-text, since a rejection redirects to an empty form. `src/server.ts` normalises
+text, since a rejection then redirected to an empty form. `src/server.ts` normalises
 CRLF/CR to LF before the length check and storage; guarded in
 `spec/colophon.test.ts`. Found only by typing a multi-line colophon to the
 limit in a real browser: every earlier length test used single-line strings.
+
+## No `maxlength`: rejection hands the text back
+
+A textarea `maxlength` silently cuts a paste to the limit, mid-word, which is
+the client-side version of the auto-truncation `CLAUDE.md` forbids. The form
+has no `maxlength`; `public/live.js` shows an over-the-limit count as an
+enhancement, and the server answers a too-long colophon with the page itself
+(422), the visitor's text escaped back in the box. GET `/colophons` redirects
+home. The live layer runs on that 422 page too (checked with two browser
+sessions): new colophons arrive and are announced while the draft stays put.
