@@ -56,9 +56,8 @@ const server = createServer(async (req, res) => {
   if (setCookie) res.setHeader("Set-Cookie", setCookie);
 
   if (req.method === "GET" && url.pathname === "/") {
-    const error = url.searchParams.get("error");
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    res.end(renderIndex(listColophons(), token, error ?? undefined));
+    res.end(renderIndex(listColophons(), token));
     return;
   }
 
@@ -70,17 +69,27 @@ const server = createServer(async (req, res) => {
       return;
     }
     const params = new URLSearchParams(raw);
-    // A form submits each line break as CRLF, but the textarea's maxlength
-    // counted it as one character; count and store it the way the visitor saw it.
+    // A form submits each line break as CRLF, but the visitor saw (and the
+    // page's counter counted) one character; count and store it that way.
     const body = (params.get("body") ?? "").replace(/\r\n?/g, "\n").trim();
 
-    let error: string | undefined;
-    if (body.length === 0) error = "empty";
-    else if (body.length > MAX_BODY_LENGTH) error = "long";
+    const error = body.length === 0 ? "empty" : body.length > MAX_BODY_LENGTH ? "long" : undefined;
+    if (error) {
+      res.writeHead(422, { "Content-Type": "text/html; charset=utf-8" });
+      res.end(renderIndex(listColophons(), token, error, body));
+      return;
+    }
 
-    if (!error) broadcastColophon(addColophon(token, body));
+    broadcastColophon(addColophon(token, body));
+    res.writeHead(303, { Location: "/" });
+    res.end();
+    return;
+  }
 
-    res.writeHead(303, { Location: error ? `/?error=${error}` : "/" });
+  // A rejected write is answered at /colophons; revisiting that address by GET
+  // should land on the scroll, not a 404.
+  if (req.method === "GET" && url.pathname === "/colophons") {
+    res.writeHead(303, { Location: "/" });
     res.end();
     return;
   }

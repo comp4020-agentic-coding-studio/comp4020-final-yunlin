@@ -1,9 +1,7 @@
 import { expect, inject, it } from "vitest";
 
-// A crafted request can skip the form's own maxlength="320" the same way
-// spec/colophon.test.ts already posts straight to /colophons, bypassing every
-// constraint the <textarea> enforces (see ../memory/MEMORY.md's write-endpoint
-// lesson from an earlier crit). Before the fix this test guards, the server
+// A crafted request can skip the form entirely, the same way
+// spec/colophon.test.ts already posts straight to /colophons. Before the fix this test guards, the server
 // read an entire oversized body into memory before ever checking its length —
 // a single request could exhaust the process's memory on this app's
 // single-machine deploy. It has to reject early, not just reject eventually.

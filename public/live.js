@@ -65,3 +65,20 @@ if (list && "EventSource" in window) {
     if (event.persisted) connect();
   });
 }
+
+// The textarea has no maxlength, since that silently cuts a paste short; the
+// count says how far past the margin a line runs, and the server rejects it.
+const textarea = document.querySelector("#body");
+const count = document.querySelector("#body-count");
+const max = Number(count?.dataset.max);
+
+function updateCount() {
+  const n = textarea.value.length;
+  count.textContent =
+    n > max ? `${n} of ${max} — ${n - max} over, shorten it to write it in` : `${n} of ${max}`;
+}
+
+if (textarea && count) {
+  textarea.addEventListener("input", updateCount);
+  updateCount();
+}

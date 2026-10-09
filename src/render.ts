@@ -42,12 +42,19 @@ export function colophonEntry(c: Colophon, ownToken: string): string {
       </li>`;
 }
 
-export function renderIndex(colophons: Colophon[], ownToken: string, error?: string): string {
+// A rejected submission comes back with the visitor's own text still in the
+// box, so they can shorten it themselves rather than start again.
+export function renderIndex(
+  colophons: Colophon[],
+  ownToken: string,
+  error?: "empty" | "long",
+  draft = "",
+): string {
   const errorMessage =
     error === "empty"
       ? "A colophon needs at least a few words."
       : error === "long"
-        ? `Keep it to ${MAX_BODY_LENGTH} characters — the margin is not infinite.`
+        ? `Keep it to ${MAX_BODY_LENGTH} characters — the margin is not infinite. What you wrote is still below; shorten it and write it in again.`
         : undefined;
 
   const body = `
@@ -88,13 +95,8 @@ export function renderIndex(colophons: Colophon[], ownToken: string, error?: str
         ${errorMessage ? `<p class="form-error" role="alert">${escapeHtml(errorMessage)}</p>` : ""}
         <form method="post" action="/colophons">
           <label for="body">A line for the margin</label>
-          <textarea
-            id="body"
-            name="body"
-            maxlength="${MAX_BODY_LENGTH}"
-            rows="3"
-            required
-          ></textarea>
+          <textarea id="body" name="body" rows="3" required aria-describedby="body-count">${escapeHtml(draft)}</textarea>
+          <p class="form-count" id="body-count" data-max="${MAX_BODY_LENGTH}">Up to ${MAX_BODY_LENGTH} characters.</p>
           <button type="submit">Write it in</button>
         </form>
       </section>
