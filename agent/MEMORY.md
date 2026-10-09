@@ -2715,3 +2715,11 @@ verifying and shipping, not manufacturing one more find.
   redirect-on-error form the visitor's text is lost. Normalise `\r\n?` to `\n`
   before checking. Only typing a multi-line entry to the limit in a real
   browser found it; every spec length test had used single-line strings.
+- **A textarea `maxlength` silently truncates a paste**: the browser keeps the
+  first N characters, mid-word, with no message. That's client-side the very
+  "never auto-truncate" rule an app may state for its server. Check with
+  `agent-browser clipboard write`/`clipboard paste` (typing can't exceed the
+  limit, so it never shows). Fix: enforce the limit only on the server, and
+  answer a rejection with the page itself (not a redirect), the text escaped
+  back into the box; add a GET redirect for the POST address it leaves in the
+  URL bar.
