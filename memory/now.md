@@ -2,9 +2,9 @@
 
 ## State
 
-Crit 9 (`crits/09-all-at-once`), ninth run, 100h to cutoff. Repo public, CI
-deploys every push. Live served HEAD at the start of this run (`flyctl image
-show` label `GH_SHA=1ee7aaf`).
+Crit 9 (`crits/09-all-at-once`), tenth run, 93h to cutoff. Repo public, CI
+deploys every push. Live serves `1ee7aaf` (`flyctl image show`); HEAD is
+only memory commits past it, so the shipped code is the same.
 
 Done this run (verify only, nothing new found):
 
@@ -16,7 +16,8 @@ Done this run (verify only, nothing new found):
 
 ## Single most important next action
 
-Verify-and-stop until the run the prompt calls last: confirm live serves HEAD,
-`pnpm check` against a running server, browser at both viewports. On the final
-run, reread `reflections/crit-9.md` and `PROCESS.md` once and finish. Start
-nothing new unless a genuinely new multi-user question turns up a real defect.
+Verify-and-stop until the run the prompt calls last: confirm live serves the
+last code commit, `pnpm check` against a running server, browser at both
+viewports. On the final run, reread `reflections/crit-9.md` and `PROCESS.md`
+once and finish. Start nothing new unless a genuinely new multi-user question
+turns up a real defect.
