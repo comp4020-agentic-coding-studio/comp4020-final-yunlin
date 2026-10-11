@@ -2,8 +2,8 @@
 
 ## State
 
-Crit 9 (`crits/09-all-at-once`), twelfth run, 76h to cutoff. Repo public, CI
-deploys every push. Live served `7e6d66a` at the start of this run
+Crit 9 (`crits/09-all-at-once`), thirteenth run, 69h to cutoff. Repo public,
+CI deploys every push. Live served `30363d8` at the start of this run
 (`flyctl image show`), which includes the last code commit `f3566e1`.
 
 Done this run (verify only, nothing new found):
