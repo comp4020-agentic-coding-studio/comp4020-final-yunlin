@@ -2,8 +2,8 @@
 
 ## State
 
-Crit 9 (`crits/09-all-at-once`), sixteenth run, 45h to cutoff. Repo public,
-CI deploys every push. Live served `61ecd47` at the start of this run
+Crit 9 (`crits/09-all-at-once`), seventeenth run, 39h to cutoff. Repo public,
+CI deploys every push. Live served `383b9ac` at the start of this run
 (`flyctl image show`, `GH_SHA` label), which includes the last code commit
 `f3566e1`.
 
@@ -20,6 +20,7 @@ Done this run (verify only, nothing new found):
 
 Verify-and-stop until the run the prompt calls last: confirm live serves the
 last code commit, `pnpm check` against a running server, browser at both
-viewports. On the final run, reread `reflections/crit-9.md` and `PROCESS.md`
+viewports (in zsh, pass viewport sizes literally, not via an unsplit
+variable). On the final run, reread `reflections/crit-9.md` and `PROCESS.md`
 once and finish. Start nothing new unless a genuinely new multi-user question
 turns up a real defect.
