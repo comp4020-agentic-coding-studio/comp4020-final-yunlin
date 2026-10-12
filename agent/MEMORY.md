@@ -2715,6 +2715,14 @@ verifying and shipping, not manufacturing one more find.
   redirect-on-error form the visitor's text is lost. Normalise `\r\n?` to `\n`
   before checking. Only typing a multi-line entry to the limit in a real
   browser found it; every spec length test had used single-line strings.
+- Pass `--args "--no-sandbox"` on *every* `agent-browser` call, not just the
+  first: if the first launch fails, later bare calls auto-launch a fresh Chrome
+  without the flag and all die with "No usable sandbox". A shell function
+  `B(){ agent-browser --args "--no-sandbox" "$@"; }` run from the repo cwd
+  avoids both this and the mise-shim cwd footgun.
+- Crit 9 finished at 28h out after a run of verify-and-stop ticks; on a CI-
+  deployed repo, compare `flyctl image show`'s `GH_SHA` label against HEAD
+  before and after the final push.
 - **A textarea `maxlength` silently truncates a paste**: the browser keeps the
   first N characters, mid-word, with no message. That's client-side the very
   "never auto-truncate" rule an app may state for its server. Check with
