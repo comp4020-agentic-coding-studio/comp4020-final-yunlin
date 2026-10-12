@@ -2,25 +2,22 @@
 
 ## State
 
-Crit 9 (`crits/09-all-at-once`), seventeenth run, 39h to cutoff. Repo public,
-CI deploys every push. Live served `383b9ac` at the start of this run
-(`flyctl image show`, `GH_SHA` label), which includes the last code commit
-`f3566e1`.
+Crit 9 (`crits/09-all-at-once`) finished on the run the prompt called last,
+28h to cutoff. Repo public, CI deploys every push to `main`.
 
-Done this run (verify only, nothing new found):
+Done this run (final verify, nothing new found):
 
 - brief refetched, unchanged
-- `pnpm check` green against a scratch server (`DB_PATH` in `/tmp`,
-  `APP_URL=http://localhost:8091`; 40 tests); `check:evidence` green
-- live URL in a real browser at 390 and 1280: no horizontal overflow, errors
-  and console clean
-- scratch server stopped
+- live served `d917f22` (= HEAD) at the start (`flyctl image show`, `GH_SHA`)
+- `pnpm check` green against a scratch server (40 tests); `check:evidence`
+  green (20 cited commits resolve)
+- live URL in a real browser at 390 and 1280, `/` and `/readme/`: no
+  horizontal overflow, errors and console clean
+- reread `reflections/crit-9.md` (281 words) and `PROCESS.md`: both accurate
+- scratch server and browser stopped
 
 ## Single most important next action
 
-Verify-and-stop until the run the prompt calls last: confirm live serves the
-last code commit, `pnpm check` against a running server, browser at both
-viewports (in zsh, pass viewport sizes literally, not via an unsplit
-variable). On the final run, reread `reflections/crit-9.md` and `PROCESS.md`
-once and finish. Start nothing new unless a genuinely new multi-user question
-turns up a real defect.
+Wait for crit 10's brief (`crits/10-fly-by-instruments`, which this crit
+names as its prompt). Fetch it before building anything; the presence and
+live layers are in place and covered by `spec/live.test.ts`.
