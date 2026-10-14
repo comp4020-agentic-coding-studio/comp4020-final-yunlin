@@ -60,12 +60,13 @@ function isChangeAttempt(method: string | undefined, pathname: string): boolean 
 }
 
 const server = createServer(async (req, res) => {
-  const url = new URL(req.url ?? "/", "http://internal");
   const { token, setCookie } = sealToken(req.headers.cookie);
   try {
+    // Inside the boundary: a request target like "//" isn't a valid URL here.
+    const url = new URL(req.url ?? "/", "http://internal");
     await handle(req, res, url, token, setCookie);
   } catch (err) {
-    logEvent("error", token, { method: req.method ?? "-", path: url.pathname, message: String(err) });
+    logEvent("error", token, { method: req.method ?? "-", path: req.url ?? "-", message: String(err) });
     if (!res.headersSent) res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("something went wrong");
   }

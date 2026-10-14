@@ -62,3 +62,20 @@ it("a client hanging up mid-post doesn't take the server down", async () => {
   const res = await fetch(baseUrl);
   expect(res.status).toBe(200);
 });
+
+// A request target of "//" isn't a valid URL relative to any base, and parsing
+// it outside the error boundary used to take the server down the same way.
+it("a request for // doesn't take the server down", async () => {
+  const { request } = await import("node:http");
+  const status = await new Promise<number | undefined>((resolve, reject) => {
+    const req = request(new URL(baseUrl), { path: "//" }, (res) => {
+      res.resume();
+      resolve(res.statusCode);
+    });
+    req.on("error", reject);
+    req.end();
+  });
+  expect(status).toBe(500);
+  const res = await fetch(baseUrl);
+  expect(res.status).toBe(200);
+});
