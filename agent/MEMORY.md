@@ -2731,3 +2731,17 @@ verifying and shipping, not manufacturing one more find.
   answer a rejection with the page itself (not a redirect), the text escaped
   back into the box; add a GET redirect for the POST address it leaves in the
   URL bar.
+
+## Crit 10 additions (Fly by instruments — who did what)
+
+- **An `async` `node:http` request handler with no try/catch turns any
+  rejection into an unhandled rejection, and Node 24 exits the process on
+  one.** A client that sends half a declared `Content-Length` and hangs up
+  makes `for await (const chunk of req)` throw `Error: aborted`; in Colophon
+  that took the whole server down for every reader. Wrap the handler in one
+  error boundary from the first draft of any plain-`node:http` app; a raw
+  socket (`node:net`) is the way to test it.
+- For a "logs must say who did what" brief on an anonymous-identity app, log a
+  one-way pseudonym (display glyph + a few hex of the token's hash), never the
+  token, and only actions, never views --- otherwise the log becomes the
+  permanent who-was-here record the app's own design rejected.
