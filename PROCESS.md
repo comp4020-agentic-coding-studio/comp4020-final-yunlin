@@ -77,6 +77,28 @@ extends the wet/dry split to sound, announcing new colophons but never
 arrivals, and collapsing a reconnect's replay to a count; the code followed
 ([`1042539`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/1042539)).
 
+## Telling people apart, from the logs
+
+Crit 10 asks for the app to tell people apart on the server and for the logs to
+say who did what. The first half already held: the seal cookie is checked on
+every request, and there was never a route to change a colophon. The second
+half was empty, since the server printed one line at startup and nothing else.
+The record
+([`e808a8c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/e808a8c), before the code again) had to reconcile a log
+with two earlier rules: no token leaves its own `Set-Cookie`, and no permanent
+record of who was looking. So the log names a pseudonym, the seal glyph plus
+six hex characters of the token's hash (the glyph alone collides one time in
+twelve, exactly the two-classmates case the crit tests), and only for things a
+person does: writing, being turned away, or trying to change a line, which is
+now answered `405` and logged rather than silently 404'd
+([`7920510`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/7920510)).
+
+Wiring the log into a single error boundary turned up a bug no earlier check
+had: a client hanging up halfway through a post made the async handler reject
+with nothing to catch it, and Node took the whole process down. A raw socket
+crashed the old build and not the new, and the test that does the same fails
+against the old code.
+
 ## Corrections that landed in the harness
 
 Most of what the agent got wrong surfaced by asking one question of one

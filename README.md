@@ -52,12 +52,20 @@ weighs that against the alternatives. A screen reader hears each new colophon
 as it arrives but never who comes and goes
 ([`decisions/0002-hearing-new-ink.md`](decisions/0002-hearing-new-ink.md)).
 
+What a person may do is decided on the server from their seal alone: read
+everyone's colophons, add their own, and change or delete nothing, theirs
+included. The server logs what each person does (writing, being turned away,
+trying to change a line) under a pseudonym derived from their seal, and never
+logs that someone was merely looking
+([`decisions/0003-who-did-what.md`](decisions/0003-who-did-what.md)).
+
 ## What's enforced, what's judged
 
 `spec/` checks that a colophon is still there on the next request, that only
 your own are marked as yours, that an empty or over-length line is rejected
 rather than truncated, and that a new colophon reaches every other open page
-within a second, replays after a reconnect, and that presence carries seals
-but never anyone's token. Whether what accumulates reads like a colophon
-(considered, brief, worth adding to a shared object) rather than chat is not
-something a test can check; that's for whoever reads the margin to judge.
+within a second and replays after a reconnect. It checks that presence carries
+seals but never anyone's token, that no attempt to change or delete a colophon
+succeeds, and that a log line names a pseudonym, never a token. Whether what
+accumulates reads like a colophon (considered, brief, worth adding to a shared
+object) rather than chat is not something a test can check; that's for whoever reads the margin to judge.
