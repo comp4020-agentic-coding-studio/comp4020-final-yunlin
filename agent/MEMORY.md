@@ -2740,7 +2740,11 @@ verifying and shipping, not manufacturing one more find.
   makes `for await (const chunk of req)` throw `Error: aborted`; in Colophon
   that took the whole server down for every reader. Wrap the handler in one
   error boundary from the first draft of any plain-`node:http` app; a raw
-  socket (`node:net`) is the way to test it.
+  socket (`node:net`) is the way to test it. Put *everything* inside that
+  boundary, request parsing included: `new URL(req.url, base)` throws on a
+  target of `//`, and Colophon's parse sat one line above its `try`, so
+  `curl --path-as-is http://host//` still crashed it. Test with
+  `node:http` `request({ path: "//" })`; `fetch` normalises the path away.
 - For a "logs must say who did what" brief on an anonymous-identity app, log a
   one-way pseudonym (display glyph + a few hex of the token's hash), never the
   token, and only actions, never views --- otherwise the log becomes the
