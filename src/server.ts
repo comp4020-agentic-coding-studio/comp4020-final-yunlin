@@ -6,6 +6,7 @@ import { sealToken } from "./cookies.ts";
 import { renderIndex, renderReadme, MAX_BODY_LENGTH } from "./render.ts";
 import { renderMarkdown } from "./markdown.ts";
 import { broadcastColophon, openStream } from "./live.ts";
+import { logEvent } from "./log.ts";
 
 const PORT = Number(process.env.PORT ?? 8080);
 const README = readFileSync("README.md", "utf8");
@@ -50,10 +51,44 @@ async function readBody(req: import("node:http").IncomingMessage): Promise<strin
   return tooLarge ? undefined : Buffer.concat(chunks).toString("utf8");
 }
 
+// A colophon can't be changed or deleted by anyone, its writer included.
+// There's no route for it; an attempt is answered and logged, so whether one
+// person tried to change another's is in the log, not just in the code.
+function isChangeAttempt(method: string | undefined, pathname: string): boolean {
+  if (pathname.startsWith("/colophons/")) return true;
+  return pathname === "/colophons" && method !== "GET" && method !== "POST";
+}
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", "http://internal");
   const { token, setCookie } = sealToken(req.headers.cookie);
-  if (setCookie) res.setHeader("Set-Cookie", setCookie);
+  try {
+    await handle(req, res, url, token, setCookie);
+  } catch (err) {
+    logEvent("error", token, { method: req.method ?? "-", path: url.pathname, message: String(err) });
+    if (!res.headersSent) res.writeHead(500, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("something went wrong");
+  }
+});
+
+async function handle(
+  req: import("node:http").IncomingMessage,
+  res: import("node:http").ServerResponse,
+  url: URL,
+  token: string,
+  setCookie: string | undefined,
+): Promise<void> {
+  if (setCookie) {
+    res.setHeader("Set-Cookie", setCookie);
+    logEvent("seal", token, { path: url.pathname });
+  }
+
+  if (isChangeAttempt(req.method, url.pathname)) {
+    logEvent("refused", token, { method: req.method ?? "-", path: url.pathname });
+    res.writeHead(405, { "Content-Type": "text/plain; charset=utf-8", Allow: "GET, POST" });
+    res.end("a colophon can't be changed or taken back, by anyone");
+    return;
+  }
 
   if (req.method === "GET" && url.pathname === "/") {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
@@ -64,6 +99,7 @@ const server = createServer(async (req, res) => {
   if (req.method === "POST" && url.pathname === "/colophons") {
     const raw = await readBody(req);
     if (raw === undefined) {
+      logEvent("reject", token, { reason: "large" });
       res.writeHead(413, { "Content-Type": "text/plain; charset=utf-8" });
       res.end("payload too large");
       return;
@@ -75,12 +111,15 @@ const server = createServer(async (req, res) => {
 
     const error = body.length === 0 ? "empty" : body.length > MAX_BODY_LENGTH ? "long" : undefined;
     if (error) {
+      logEvent("reject", token, { reason: error, length: body.length });
       res.writeHead(422, { "Content-Type": "text/html; charset=utf-8" });
       res.end(renderIndex(listColophons(), token, error, body));
       return;
     }
 
-    broadcastColophon(addColophon(token, body));
+    const colophon = addColophon(token, body);
+    logEvent("write", token, { id: colophon.id, length: body.length, opening: body.slice(0, 40) });
+    broadcastColophon(colophon);
     res.writeHead(303, { Location: "/" });
     res.end();
     return;
@@ -127,8 +166,8 @@ const server = createServer(async (req, res) => {
 
   res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
   res.end("not found");
-});
+}
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`colophon listening on 0.0.0.0:${PORT}`);
+  logEvent("listening", undefined, { port: PORT });
 });

@@ -23,6 +23,10 @@ what has to change first, in the same commit.
   write it to disk, never turn it into a count or a history. Nothing sent to
   a browser other than its own `Set-Cookie` may contain a seal token, since
   the token is the visitor's whole identity.
+- What a person may change is decided on the server from their seal cookie
+  alone, and is written down in `decisions/0003-who-did-what.md`. Log what a
+  person does through `logEvent` (their pseudonym, never their token); never
+  log a page view, a stream or presence.
 - A change to how several people share the page at once (what travels live,
   what replays, what presence shows) starts as a record in `decisions/`, with
   the options weighed and the cost named, before the code.
