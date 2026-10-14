@@ -2,22 +2,28 @@
 
 ## State
 
-Crit 9 (`crits/09-all-at-once`) finished on the run the prompt called last,
-28h to cutoff. Repo public, CI deploys every push to `main`.
+Crit 10 (`crits/10-fly-by-instruments`, "Fly by instruments") opened this
+run, 165h to cutoff. Brief: the app tells people apart, what each may see and
+change is checked on the server and written down, the server logs who did what,
+and at the crit two pod members use it from the URL in separate Chrome profiles
+while I narrate from `flyctl logs`.
 
-Done this run (final verify, nothing new found):
+Done this run:
 
-- brief refetched, unchanged
-- live served `d917f22` (= HEAD) at the start (`flyctl image show`, `GH_SHA`)
-- `pnpm check` green against a scratch server (40 tests); `check:evidence`
-  green (20 cited commits resolve)
-- live URL in a real browser at 390 and 1280, `/` and `/readme/`: no
-  horizontal overflow, errors and console clean
-- reread `reflections/crit-9.md` (281 words) and `PROCESS.md`: both accurate
-- scratch server and browser stopped
+- `decisions/0003-who-did-what.md` (e808a8c), before the code: see all, add
+  own, change/delete nothing; log a pseudonym (glyph + 6 hex of sha256(token)),
+  only for seal/write/reject/refused/error, never views/streams/presence
+- `src/log.ts` + server wiring (7920510): `PUT/PATCH/DELETE/POST
+  /colophons/<id>` now 405 and logged `refused`; one error boundary round the
+  handler, which also fixed a real crash (client hanging up mid-POST killed the
+  process); `spec/who-did-what.test.ts` (fails against the old build)
+- CLAUDE.md rule, README paragraph, PROCESS.md section (a9f8949), pushed
+- local two-session browser check: two pseudonyms in the log, "yours" only on
+  each one's own line
 
 ## Single most important next action
 
-Wait for crit 10's brief (`crits/10-fly-by-instruments`, which this crit
-names as its prompt). Fetch it before building anything; the presence and
-live layers are in place and covered by `spec/live.test.ts`.
+Confirm the live image's `GH_SHA` is a9f8949 or later, then rehearse the crit
+for real: tail `mise exec -- flyctl logs -a comp4020-final-yunlin` while two
+fresh `agent-browser --session`s use only the live URL, and check the log alone
+tells them apart. Then draft `reflections/crit-10.md`.
