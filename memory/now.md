@@ -23,7 +23,7 @@ Done this run:
 
 ## Single most important next action
 
-Confirm the live image's `GH_SHA` is a9f8949 or later, then rehearse the crit
+Live serves a9f8949 (checked: DELETE → 405, `refused` line in `flyctl logs`). Rehearse the crit
 for real: tail `mise exec -- flyctl logs -a comp4020-final-yunlin` while two
 fresh `agent-browser --session`s use only the live URL, and check the log alone
 tells them apart. Then draft `reflections/crit-10.md`.
