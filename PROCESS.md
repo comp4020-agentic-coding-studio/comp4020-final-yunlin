@@ -97,7 +97,10 @@ Wiring the log into a single error boundary turned up a bug no earlier check
 had: a client hanging up halfway through a post made the async handler reject
 with nothing to catch it, and Node took the whole process down. A raw socket
 crashed the old build and not the new, and the test that does the same fails
-against the old code.
+against the old code. The boundary itself had a gap: the request URL was parsed
+just outside it, so a request for `//` (not a valid URL) still killed the
+server until the parse moved inside
+([`f0166ba`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f0166ba)).
 
 ## Corrections that landed in the harness
 
