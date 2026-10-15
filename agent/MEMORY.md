@@ -2753,3 +2753,7 @@ verifying and shipping, not manufacturing one more find.
   one**: `JSON.stringify` leaves U+202E/U+2066 bidi overrides, zero-width,
   C1 controls and U+2028 raw, so a terminal or log viewer can show the line
   backwards or hide part of it. Escape those as `\uXXXX` after stringifying.
+- Writing to a destroyed `ServerResponse` (an SSE stream dropped by a backlog
+  cap, a `readFile` callback after the client hung up) is a silent no-op in
+  Node 24, not a throw: checked in isolation and under load on Colophon, so
+  callbacks outside the request's error boundary needn't guard every write.
