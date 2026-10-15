@@ -2,22 +2,24 @@
 
 ## State
 
-Crit 10 (`crits/10-fly-by-instruments`), ~135h to cutoff. Who-did-what work
-done and live; live image GH_SHA = ff574f1 until this run's push redeploys.
+Crit 10 (`crits/10-fly-by-instruments`), ~124h to cutoff. Who-did-what work
+done and live; live image GH_SHA matched HEAD (5854000) at the start of this
+run.
 
-Done this run (the callbacks outside `handle()`, all closed clean):
+Done this run: rehearsed the crit narration on a scratch server with two
+independent `agent-browser --session`s, reading only the log. Clean:
 
-- stalled SSE readers (5 raw sockets, SO_RCVBUF 4096) under 360 broadcasts:
-  the backlog cap destroyed them, writes to a destroyed response are no-ops
-  (checked in isolation), no error, server kept serving; departed seals left
-  presence once their sockets closed
-- 300 clients hanging up straight after `GET /public/scroll.avif`: the
-  `readFile` callback writing after hang-up raised nothing; locked in as a
-  spec test (`8465f4b`)
+- the two people got distinct pseudonyms (`守·c63601`, `題·33f7f9`), and each
+  `write` line names its author and opening text
+- the second person's `DELETE /colophons/1` (the first person's colophon) got a
+  405 and logged `event=refused who=題·33f7f9`
+- each browser marked only its own colophon "yours"; the presence glyphs on
+  the page match the log's glyphs, so a narrator can point from log to screen
+- no console errors
 
 ## Single most important next action
 
-The callback angle is dry. Next deepen question, if any: rehearse the crit
-narration once more against `flyctl logs` with two real browser sessions, or
-finish early. On the run the prompt calls last: verify live serves HEAD
-(`flyctl image show` GH_SHA), recheck reflection, stop.
+Deepen list is dry (callbacks, log escaping, crash paths, rehearsal all
+closed). Don't manufacture passes: on the run the prompt calls last, verify
+live serves HEAD (`flyctl image show` GH_SHA), reread `reflections/crit-10.md`,
+stop. Before then, only take up a genuinely new question.
