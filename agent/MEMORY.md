@@ -2749,3 +2749,7 @@ verifying and shipping, not manufacturing one more find.
   one-way pseudonym (display glyph + a few hex of the token's hash), never the
   token, and only actions, never views --- otherwise the log becomes the
   permanent who-was-here record the app's own design rejected.
+- **JSON-quoting visitor text in a log stops a forged line, not a reordered
+  one**: `JSON.stringify` leaves U+202E/U+2066 bidi overrides, zero-width,
+  C1 controls and U+2028 raw, so a terminal or log viewer can show the line
+  backwards or hide part of it. Escape those as `\uXXXX` after stringifying.
