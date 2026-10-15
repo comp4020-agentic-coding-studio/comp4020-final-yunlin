@@ -1,4 +1,5 @@
 import { request } from "node:http";
+import { connect } from "node:net";
 import { expect, inject, it } from "vitest";
 
 // The "what could a crafted request do at the API boundary" question (already
@@ -49,4 +50,27 @@ it.each([
   "/public%2f..%2f..%2fetc%2fpasswd",
 ])("traversal attempt %s never escapes /public/", async (path) => {
   expect(await rawGet(path)).not.toBe(200);
+});
+
+// The file is read in a callback that writes after the request handler has
+// returned, so the client may already be gone. A burst of requests that hang
+// up straight away must leave the server serving.
+it("a client that hangs up before its file is read doesn't take the server down", async () => {
+  const { hostname, port } = new URL(baseUrl);
+  await Promise.all(
+    Array.from(
+      { length: 50 },
+      () =>
+        new Promise<void>((resolve) => {
+          const socket = connect(Number(port || 80), hostname, () => {
+            socket.end("GET /public/scroll.avif HTTP/1.1\r\nHost: x\r\n\r\n");
+            socket.destroy();
+            resolve();
+          });
+          socket.on("error", () => resolve());
+        }),
+    ),
+  );
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  expect(await rawGet("/public/scroll.avif")).toBe(200);
 });
