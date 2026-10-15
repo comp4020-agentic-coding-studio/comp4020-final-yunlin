@@ -23,6 +23,13 @@ it("visitor text can't forge a second log line or a field", () => {
   expect(line).toBe(`event=write who=${pseudonym(a)} opening="hi\\nevent=write who=someone-else"`);
 });
 
+it("visitor text can't reorder or hide part of a log line", () => {
+  // Bidi overrides (Trojan Source), C1 controls and Unicode line separators
+  // pass JSON.stringify untouched, and a log viewer would act on them.
+  const line = formatEvent("write", a, { opening: "a\u202eb\u2066c\u0085d\u2028e\u200ff" });
+  expect(line).toBe(`event=write who=${pseudonym(a)} opening="a\\u202eb\\u2066c\\u0085d\\u2028e\\u200ff"`);
+});
+
 it("nobody can change or delete a colophon, theirs or anyone else's", async () => {
   for (const method of ["PUT", "PATCH", "DELETE", "POST"]) {
     const res = await fetch(new URL("/colophons/1", baseUrl), {

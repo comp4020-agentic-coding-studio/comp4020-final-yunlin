@@ -11,9 +11,14 @@ export function pseudonym(token: string): string {
 }
 
 // Values are JSON-quoted unless plainly safe, so visitor text with a line
-// break or an "event=" in it can't forge a second line or a field.
+// break or an "event=" in it can't forge a second line or a field. JSON leaves
+// C1 controls, Unicode line separators, zero-width and bidi characters as they
+// are, and a log viewer would break, hide or reorder the line on them.
+const INVISIBLE = /[\u007f-\u009f\u00ad\u061c\u200b-\u200f\u2028-\u202e\u2060-\u206f\ufeff]/g;
+
 function value(v: string | number): string {
-  return typeof v === "number" || /^[\w./:-]+$/.test(v) ? String(v) : JSON.stringify(v);
+  if (typeof v === "number" || /^[\w./:-]+$/.test(v)) return String(v);
+  return JSON.stringify(v).replace(INVISIBLE, (c) => `\\u${c.codePointAt(0)!.toString(16).padStart(4, "0")}`);
 }
 
 export function formatEvent(event: string, token: string | undefined, fields: Record<string, string | number> = {}): string {
