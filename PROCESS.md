@@ -101,6 +101,11 @@ against the old code. The boundary itself had a gap: the request URL was parsed
 just outside it, so a request for `//` (not a valid URL) still killed the
 server until the parse moved inside
 ([`f0166ba`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f0166ba)).
+JSON-quoting visitor text stopped a forged second line but not a reordered
+one: a right-to-left override in a colophon passed through untouched, and a
+log viewer would display the rest of the line backwards. Those characters are
+now written as `\u` escapes
+([`7fc81a4`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/7fc81a4)).
 
 ## Corrections that landed in the harness
 
