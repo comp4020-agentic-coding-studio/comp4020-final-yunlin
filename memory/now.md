@@ -2,19 +2,18 @@
 
 ## State
 
-Crit 10 (`crits/10-fly-by-instruments`), ~111h to cutoff. Who-did-what work
-is done and live; live image GH_SHA matched HEAD (d6ac682) at the start of
-this run.
+Crit 10 (`crits/10-fly-by-instruments`), ~100h to cutoff. Who-did-what work
+is done and live. Live image GH_SHA matched HEAD (d97ff6c) at the start of
+this run, and the live URL returned 200. Reread the brief: no new
+requirement beyond what's already shipped (server-enforced who-may-do-what in
+`decisions/0003-who-did-what.md`, pseudonymous action log via `logEvent`).
 
-Done this run: reread the brief and the live log. Only new observation: on a
-cold start (auto-stop is on), Fly's proxy logs two red "instance refused
-connection" errors in the ~2s before `event=listening`. The waiting request
-is still served (its `seal` line follows), so it's not a fault, but during
-the crit narration expect those lines on the first visit and say what they
-are rather than reading them as a finding.
+During the crit narration, expect two red "instance refused connection"
+proxy lines on a cold start before `event=listening`. They aren't a fault:
+the waiting request is still served.
 
 ## Single most important next action
 
-The deepen list is dry. Don't manufacture passes. On the run the prompt calls
-last: verify that live serves HEAD (`flyctl image show` GH_SHA), reread
+The deepen list is dry, so don't manufacture passes. On the run the prompt
+calls last: check that live serves HEAD (`flyctl image show` GH_SHA), reread
 `reflections/crit-10.md`, then stop.
