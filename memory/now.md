@@ -2,16 +2,16 @@
 
 ## State
 
-Crit 10 (`crits/10-fly-by-instruments`), ~117h to cutoff. Who-did-what work
-is done and live. The live image's GH_SHA matched HEAD (12205dc) at the start
-of this run.
+Crit 10 (`crits/10-fly-by-instruments`), ~111h to cutoff. Who-did-what work
+is done and live; live image GH_SHA matched HEAD (d6ac682) at the start of
+this run.
 
-Done this run: asked one new question. Does a fresh browser log more than one
-`seal` line, so the narrator would see phantom people? Subresources, the
-`/events` stream, the favicon and a second page could each have done it.
-Checked on a scratch server with two `agent-browser --session`s, one of which
-also opened `/readme/`. The result was clean: exactly one `seal` line per
-browser. The live log so far also shows one `seal` line per visit.
+Done this run: reread the brief and the live log. Only new observation: on a
+cold start (auto-stop is on), Fly's proxy logs two red "instance refused
+connection" errors in the ~2s before `event=listening`. The waiting request
+is still served (its `seal` line follows), so it's not a fault, but during
+the crit narration expect those lines on the first visit and say what they
+are rather than reading them as a finding.
 
 ## Single most important next action
 
