@@ -2,11 +2,10 @@
 
 ## State
 
-Crit 10 (`crits/10-fly-by-instruments`), ~87h to cutoff. Who-did-what work
-is done and live. This run: live image GH_SHA matched HEAD (1d9d698), the live
-URL returned 200, and `flyctl logs` showed a cold start (`event=listening`)
-then one pseudonymous `event=seal who=<glyph>·<hex>` line, nothing else.
-Reread the brief: nothing beyond what's shipped.
+Crit 10 (`crits/10-fly-by-instruments`), ~76h to cutoff. Who-did-what work
+is done and live. This run: refetched the brief (unchanged), live image
+GH_SHA matched HEAD (766cef5), live URL returned 200, tree clean. Nothing
+new done, by design.
 
 During the crit narration, expect two red "instance refused connection"
 proxy lines on a cold start before `event=listening`. They aren't a fault:
