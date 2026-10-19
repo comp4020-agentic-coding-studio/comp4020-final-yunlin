@@ -2757,3 +2757,9 @@ verifying and shipping, not manufacturing one more find.
   cap, a `readFile` callback after the client hung up) is a silent no-op in
   Node 24, not a throw: checked in isolation and under load on Colophon, so
   callbacks outside the request's error boundary needn't guard every write.
+- This template's `pnpm check` tests a *running* app (`spec/global-setup.ts`
+  waits on `APP_URL`, default `:8080`), so a bare `pnpm check` fails with "No
+  test files found" plus "nothing is answering". Start
+  `PORT=<free> DB_PATH=/tmp/<dir>/c.db node src/server.ts` first and pass
+  `APP_URL`. Use a scratch DB so test colophons never touch real data.
+- Crit 10 finished at 28h out after a run of verify-and-stop ticks.
