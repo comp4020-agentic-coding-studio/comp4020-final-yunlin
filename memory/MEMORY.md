@@ -243,3 +243,10 @@ enhancement, and the server answers a too-long colophon with the page itself
 (422), the visitor's text escaped back in the box. GET `/colophons` redirects
 home. The live layer runs on that 422 page too (checked with two browser
 sessions): new colophons arrive and are announced while the draft stays put.
+
+## `pnpm check` needs a running app
+
+`spec/global-setup.ts` tests over HTTP at `APP_URL` (default `:8080`). Locally,
+start `PORT=<free> DB_PATH=/tmp/<dir>/c.db node src/server.ts` and run
+`APP_URL=http://localhost:<port> pnpm check`; the scratch DB keeps test
+colophons out of real data.
