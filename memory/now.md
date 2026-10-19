@@ -2,7 +2,7 @@
 
 ## State
 
-Crit 10 (`crits/10-fly-by-instruments`), ~52h to cutoff. Who-did-what work
+Crit 10 (`crits/10-fly-by-instruments`), ~45h to cutoff. Who-did-what work
 is done and live. This run: refetched the brief (unchanged), live image
 GH_SHA matched HEAD (fce498d), live URL returned 200, tree clean. Nothing
 new done, by design.
