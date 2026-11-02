@@ -2,15 +2,16 @@
 
 ## State
 
-Crit 10 (`crits/10-fly-by-instruments`) finished on the run the prompt called
-last, 28h to cutoff. Brief refetched (unchanged, no `-retro` in `related`).
-Live image GH_SHA matched HEAD before the final push; `/` and `/readme/`
-returned 200. `pnpm check` (48 tests) and `check:evidence` green against a
-scratch local server; browser pass at 1280x800 and 390x844 clean, no console
-errors. `reflections/crit-10.md` reread (290 words, on brief). Nothing new
-built.
+Final project (`assessments/final-project`) is open, due 2026-11-09 12:00,
+165h out at this run. Brief fetched: README 400–600 words, PROCESS 900–1100.
+Both were over (684, 1495); tightened to 584 and 1042 without dropping any
+source or cited commit, and `spec/word-counts.test.ts` now enforces the bands
+(confirmed it fails on the old README) (`8eac446`). `pnpm check` (50 tests) and
+`check:evidence` green against a scratch local server.
 
 ## Single most important next action
 
-When the next crit opens, fetch its brief before planning. After this push,
-confirm CI redeployed it (`flyctl image show` GH_SHA equals HEAD).
+Confirm CI redeployed `8eac446` (`flyctl image show` GH_SHA equals HEAD) and
+`/readme/` live shows the shorter README. Then reread PROCESS.md against the
+brief's "makes the case for the stack and agent workflow, trade-offs weighed"
+line; the agent-workflow case is thinner than the stack case.
