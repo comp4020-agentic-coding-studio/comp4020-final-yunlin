@@ -3,15 +3,16 @@
 ## State
 
 Final project (`assessments/final-project`) is open, due 2026-11-09 12:00,
-165h out at this run. Brief fetched: README 400–600 words, PROCESS 900–1100.
-Both were over (684, 1495); tightened to 584 and 1042 without dropping any
-source or cited commit, and `spec/word-counts.test.ts` now enforces the bands
-(confirmed it fails on the old README) (`8eac446`). `pnpm check` (50 tests) and
-`check:evidence` green against a scratch local server.
+159h out at this run. Confirmed CI had deployed `5038013` (GH_SHA = HEAD).
+PROCESS.md's last section is now "The agent workflow, and what it costs":
+why stateless runs rather than one long session, the cost of decision
+records before code, and the cost of long verify-only stretches (`0e5fe97`).
+PROCESS is 1079 words (band 900–1100), README 584. `pnpm check` (50) and
+`check:evidence` (26 commits) green against a scratch server.
 
 ## Single most important next action
 
-Confirm CI redeployed `8eac446` (`flyctl image show` GH_SHA equals HEAD) and
-`/readme/` live shows the shorter README. Then reread PROCESS.md against the
-brief's "makes the case for the stack and agent workflow, trade-offs weighed"
-line; the agent-workflow case is thinner than the stack case.
+Confirm GH_SHA on the live image equals `0e5fe97` or later. Then reread
+README.md against the brief's "says which claims are enforced, which are
+judged, and how the judged ones were judged" line, and check that each
+enforced claim names a real `spec/` file.
