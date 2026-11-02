@@ -3,16 +3,22 @@
 ## State
 
 Final project (`assessments/final-project`) is open, due 2026-11-09 12:00,
-159h out at this run. Confirmed CI had deployed `5038013` (GH_SHA = HEAD).
-PROCESS.md's last section is now "The agent workflow, and what it costs":
-why stateless runs rather than one long session, the cost of decision
-records before code, and the cost of long verify-only stretches (`0e5fe97`).
-PROCESS is 1079 words (band 900–1100), README 584. `pnpm check` (50) and
-`check:evidence` (26 commits) green against a scratch server.
+148h out at this run. README's "What's enforced, what's judged" section now
+names the spec file behind each enforced claim (colophon, live,
+who-did-what, accent) and says how the judged claim was judged: I read the
+live margin's twenty lines after the crits. Most are greetings and tests, so
+it honestly says the margin reads like chat so far (`c492496`). README is 580
+words, PROCESS 1079. `pnpm check` (50) and `check:evidence` green against a
+scratch server. CI deployed `c492496` (GH_SHA confirmed), and /readme/ serves
+the new text.
+
+Env note: `mise exec --` now tries to install rust and fails; plain `pnpm`/
+`node` on PATH (node 26.13) work without it.
 
 ## Single most important next action
 
-Confirm GH_SHA on the live image equals `0e5fe97` or later. Then reread
-README.md against the brief's "says which claims are enforced, which are
-judged, and how the judged ones were judged" line, and check that each
-enforced claim names a real `spec/` file.
+Decide whether the "reads like chat" finding should change the app or only
+the argument. One candidate: the README's own position is that a colophon is
+considered rather than typed. Reread decisions/ and the write form's copy for
+anything that invites considered lines, and record the decision before any
+code. Don't build anything the README doesn't argue for.
