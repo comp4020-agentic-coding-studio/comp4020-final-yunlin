@@ -28,9 +28,8 @@ SQLite binding. For five routes and no auth that's cheap.
 Real-time is server-sent events
 ([`340c133`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/340c133)).
 Everything that travels here goes one way, server to browser: a new colophon,
-or a change in who's looking. Writing stays a plain form post, which the
-harness requires to work with JavaScript off. WebSockets would add a second
-write path for no gain, and polling fast enough to hit "within a second" would
+or a change in who's looking. Writing stays a plain form post, which must work with JavaScript off.
+WebSockets would add a second write path for no gain, and polling fast enough to hit "within a second" would
 be a request per second per open page on a 256MB machine. SSE also gives
 reconnection for free: the browser resends the id of the last event it saw,
 and because the scroll is append-only, "what you missed" is exactly every row
@@ -39,114 +38,63 @@ which ties the app to one machine. The course gives it one machine.
 
 ## Several people at once
 
-This week's decision is in
-[`decisions/0001-who-else-is-here.md`](decisions/0001-who-else-is-here.md),
-written and committed
-([`2a7d6e3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/2a7d6e3))
-before any of the code. The question that mattered was whether a visitor can
-see who else is looking. My first instinct was "nobody, only ink travels",
-since a colophon is asynchronous by nature. Rereading the history turned that
-over. Scrolls were unrolled at gatherings of friends, and many inscriptions
-were written at exactly such a gathering, so the page now shows the seals of
-whoever has it open and lets them go when they leave. Presence is wet ink and
-is never stored; only a colophon is. The record weighs this against a reader
-count (a metric, which the README rules out), permanent viewing marks
-(surveillance dressed as history) and typing indicators, and names the costs:
-presence leaks timing, and twelve glyphs collide.
+The crit 9 decision, [`decisions/0001-who-else-is-here.md`](decisions/0001-who-else-is-here.md),
+was committed ([`2a7d6e3`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/2a7d6e3)) before any code. My first instinct was that only
+ink should travel, since a colophon is asynchronous. Rereading the history
+overturned it: scrolls were unrolled at gatherings of friends, and many
+inscriptions were written there. So the page shows the seals of whoever has it
+open, and presence is wet ink, never stored. The record weighs this against a
+reader count (a metric), permanent viewing marks (surveillance) and typing
+indicators, and names the costs: presence leaks timing, and twelve glyphs
+collide.
 
-The decision then had to land in all three places the brief marks for
-agreement
-([`a7c9b80`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/a7c9b80)).
-`README.md` says why, `CLAUDE.md` gained two rules (presence never touches disk
-and no token ever goes over the stream; a change to shared behaviour starts as
-a decision record), and `spec/live.test.ts` holds the app to it over real event
-streams. Before trusting those tests I broke the code three ways (no
-broadcast, no replay, never forgetting a closed stream), and each break failed
-the test that names it. They still missed one thing, which only the deployed
-app showed: a browser that navigated away kept its seal in the row, because
-Chrome holds the departed page in its back-forward cache with the stream still
-open. The fix closes the stream on `pagehide`, and a new test runs the served
-script to hold it
-([`a777b00`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/a777b00)).
-
-The first record had also left someone out: a screen-reader user heard nothing
-when another person wrote, so for them the page wasn't real-time at all. A
-second record
-([`1953a16`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/1953a16))
-extends the wet/dry split to sound, announcing new colophons but never
-arrivals, and collapsing a reconnect's replay to a count; the code followed
-([`1042539`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/1042539)).
+The decision then landed in all three places the brief marks for agreement
+([`a7c9b80`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/a7c9b80)): the README's reason, two `CLAUDE.md` rules, and
+`spec/live.test.ts` over real event streams. I broke the code three ways
+before trusting those tests, and each break failed the test that names it.
+They still missed what the deployed app showed: Chrome's back-forward cache
+kept a departed page's stream open, so its seal stayed in the row
+([`a777b00`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/a777b00)). A second record ([`1953a16`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/1953a16), code in [`1042539`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/1042539))
+covers screen-reader users, who heard nothing when someone wrote: new
+colophons are announced, arrivals never are.
 
 ## Telling people apart, from the logs
 
-Crit 10 asks for the app to tell people apart on the server and for the logs to
-say who did what. The first half already held: the seal cookie is checked on
-every request, and there was never a route to change a colophon. The second
-half was empty, since the server printed one line at startup and nothing else.
-The record
-([`e808a8c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/e808a8c), before the code again) had to reconcile a log
-with two earlier rules: no token leaves its own `Set-Cookie`, and no permanent
-record of who was looking. So the log names a pseudonym, the seal glyph plus
-six hex characters of the token's hash (the glyph alone collides one time in
-twelve, exactly the two-classmates case the crit tests), and only for things a
-person does: writing, being turned away, or trying to change a line, which is
-now answered `405` and logged rather than silently 404'd
-([`7920510`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/7920510)).
-
-Wiring the log into a single error boundary turned up a bug no earlier check
-had: a client hanging up halfway through a post made the async handler reject
-with nothing to catch it, and Node took the whole process down. A raw socket
-crashed the old build and not the new, and the test that does the same fails
-against the old code. The boundary itself had a gap: the request URL was parsed
-just outside it, so a request for `//` (not a valid URL) still killed the
-server until the parse moved inside
-([`f0166ba`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f0166ba)).
-JSON-quoting visitor text stopped a forged second line but not a reordered
-one: a right-to-left override in a colophon passed through untouched, and a
-log viewer would display the rest of the line backwards. Those characters are
-now written as `\u` escapes
-([`7fc81a4`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/7fc81a4)).
+For crit 10 the server already told people apart by seal cookie, but logged
+nothing. The record ([`e808a8c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/e808a8c), before the code again) reconciles a log
+with two earlier rules, no token outside its own `Set-Cookie` and no record of
+who was looking: the log names a pseudonym (glyph plus six hex of the token's
+hash, since the glyph alone collides one time in twelve) and only for actions.
+An attempt to change a line is now answered `405` and logged ([`7920510`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/7920510)).
 
 ## Corrections that landed in the harness
 
 Most of what the agent got wrong surfaced by asking one question of one
-boundary at a time, and each fix left a test or a rule behind:
+boundary at a time, and each fix left a test or rule behind:
 
-- `--seal` had drifted into three meanings besides "this colophon is yours",
-  despite the rule saying otherwise. Fixed, plus a test that greps every use
-  ([`6a3ecdf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6a3ecdf))
-- the POST body had no size cap. Two attempts at rejecting it early raced the
-  client into connection errors, caught only by repeated runs against the
-  built image, before draining the body to its end held
-  ([`abd5dc4`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/abd5dc4),
-  [`9ef7505`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/9ef7505))
-- a `seal=%` cookie crashed the whole process
-  ([`6b5e6fb`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6b5e6fb)),
-  and a 15KB one persisted forever on every colophon its sender wrote
-  ([`791839c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/791839c))
-- one unbroken word blew the page out sideways. On an append-only scroll that
-  is a permanent scar, not an annoyance
-  ([`487d6bc`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/487d6bc))
-- my own traversal test couldn't fail: `fetch` normalised `..` away before
-  sending
+- `--seal` had drifted into three meanings despite the rule; a test now greps
+  every use ([`6a3ecdf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6a3ecdf))
+- two attempts at capping the POST body raced the client into connection
+  errors, caught only by repeated runs against the built image, before
+  draining the body held ([`abd5dc4`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/abd5dc4), [`9ef7505`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/9ef7505))
+- a `seal=%` cookie crashed the process ([`6b5e6fb`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6b5e6fb)), and a 15KB one
+  persisted on every colophon its sender wrote ([`791839c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/791839c)); a client
+  hanging up mid-post, or a request for `//`, also killed it until one error
+  boundary held everything ([`f0166ba`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f0166ba))
+- a right-to-left override in a colophon could reverse a log line
+  ([`7fc81a4`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/7fc81a4))
+- one unbroken word blew the page out sideways, a permanent scar on an
+  append-only scroll ([`487d6bc`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/487d6bc))
+- my traversal test couldn't fail: `fetch` normalised `..` away
   ([`e58a34c`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/e58a34c))
-- every reader's arrival sent the whole room's presence to the whole room, so
-  800 streams opened at once took the server to 3.7 GB against a 256 MB
-  machine. Presence now goes out once per burst, and a stream that stops
-  reading is dropped
-  ([`801c6a1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/801c6a1),
-  [`28be3b0`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/28be3b0))
-- a colophon the browser accepted at exactly 320 characters was rejected as
-  too long whenever it had line breaks, since the form sends each as CRLF, and
-  the visitor's words were lost with it. Found by typing one in a real browser
-  ([`f1f23da`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f1f23da))
-- the textarea's own `maxlength` silently cut a pasted passage to 320
-  characters mid-word, the truncation the harness forbids, done by the
-  browser. The limit now lives only on the server, which hands a rejected
-  colophon back in the box to shorten
+- 800 streams opened at once took the server to 3.7 GB against a 256 MB
+  machine; presence now goes out once per burst and a stalled stream is
+  dropped ([`801c6a1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/801c6a1), [`28be3b0`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/28be3b0))
+- a 320-character colophon with line breaks was rejected, since the form
+  sends CRLF ([`f1f23da`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f1f23da)), and `maxlength` silently cut a paste mid-word,
+  the truncation the harness forbids; the limit now lives only on the server
   ([`f3566e1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f3566e1))
-- the README quoted Hundred Rabbits with a phrase the interview doesn't contain
-  ([`f7d259f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f7d259f))
+- the README misquoted Hundred Rabbits ([`f7d259f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f7d259f))
 
 ## How I directed, grounded and corrected the work
 
@@ -161,8 +109,7 @@ spec runs against the image the `Dockerfile` builds, with a throwaway `/data`
 exactly as CI does, and timing-sensitive fixes run several times before I
 trust them. Persistence was checked by restarting the live Fly machine with
 colophons already on the scroll, since a tmpfs proves nothing about
-persistence. Real-time was checked with two independent browser sessions: a
-line written in one appeared in the other, marked "yours" only in the first. Claims in prose get the same treatment, so quotes are checked
+persistence. Real-time was checked with two independent browser sessions, and quotes
 against a source's raw HTML rather than a summary.
 
 Correction means the fix lands where the next run will meet it: a `spec/` test
