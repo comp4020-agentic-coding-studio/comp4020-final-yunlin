@@ -2771,3 +2771,8 @@ verifying and shipping, not manufacturing one more find.
   400–600 and PROCESS at 900–1100; by crit 10 they were 684 and 1495. Fetch the
   parent assessment's brief early in a multi-crit project, and enforce stated
   word bands as a `spec/` test, not a periodic `wc -w`.
+- **To show how a judged claim was judged, read the live data it's about and
+  report what you find, even when it cuts against you.** Colophon's margin was
+  mostly greetings and test lines, so the README now says it reads like chat
+  so far. An honest negative is still evidence of judging; "for the reader to
+  judge" isn't.
