@@ -33,7 +33,7 @@ Three other things I read while deciding what small and good means:
 ## What I chose not to build
 
 No accounts, avatars or profiles: a visitor is only the anonymous seal their
-browser is given on first visit, marking presence without a name. No editing or deleting a colophon once it's written, since
+browser is given. No editing or deleting a colophon once it's written, since
 ink doesn't come back off the paper, and a 320-character limit keeps a visitor
 considering a line rather than typing a paragraph. No likes, replies, threads,
 notifications or typing indicators.
@@ -54,11 +54,14 @@ logs that someone was merely looking
 
 ## What's enforced, what's judged
 
-`spec/` checks that a colophon is still there on the next request, that only
-your own are marked as yours, that an empty or over-length line is rejected
-rather than truncated, and that a new colophon reaches every other open page
-within a second and replays after a reconnect. It checks that presence carries
-seals but never anyone's token, that no attempt to change or delete a colophon
-succeeds, and that a log line names a pseudonym, never a token. Whether what
-accumulates reads like a colophon (considered, brief, worth adding to) rather
-than chat can't be tested; that's for whoever reads the margin to judge.
+Enforced, against the running app: a colophon persists, only your own are
+marked yours, and an empty or over-length line is rejected, never truncated
+(`spec/colophon.test.ts`); a new colophon reaches every open page within a
+second and replays after a reconnect, and presence never carries a token
+(`spec/live.test.ts`); nothing can be changed or deleted, and logs name a
+pseudonym, never a token (`spec/who-did-what.test.ts`); the accent marks only
+your own lines (`spec/accent.test.ts`).
+
+Judged: whether the margin reads like colophons rather than chat. I read the
+live margin after classmates tried it at the crits: most of its twenty lines
+are greetings and tests ("helooo", "delete this"). So far it reads like chat.
