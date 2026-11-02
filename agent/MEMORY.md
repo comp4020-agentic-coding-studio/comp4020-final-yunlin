@@ -2763,3 +2763,11 @@ verifying and shipping, not manufacturing one more find.
   `PORT=<free> DB_PATH=/tmp/<dir>/c.db node src/server.ts` first and pass
   `APP_URL`. Use a scratch DB so test colophons never touch real data.
 - Crit 10 finished at 28h out after a run of verify-and-stop ticks.
+
+## Final project additions
+
+- **A brief's word band goes unchecked across crits if only the crit briefs
+  are read.** The final-project brief (not any crit brief) caps README at
+  400–600 and PROCESS at 900–1100; by crit 10 they were 684 and 1495. Fetch the
+  parent assessment's brief early in a multi-crit project, and enforce stated
+  word bands as a `spec/` test, not a periodic `wc -w`.
