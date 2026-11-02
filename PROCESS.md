@@ -69,8 +69,7 @@ An attempt to change a line is now answered `405` and logged ([`7920510`](https:
 
 ## Corrections that landed in the harness
 
-Most of what the agent got wrong surfaced by asking one question of one
-boundary at a time, and each fix left a test or rule behind:
+Each fix left a test or rule behind:
 
 - `--seal` had drifted into three meanings despite the rule; a test now greps
   every use ([`6a3ecdf`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/6a3ecdf))
@@ -96,22 +95,27 @@ boundary at a time, and each fix left a test or rule behind:
   ([`f3566e1`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f3566e1))
 - the README misquoted Hundred Rabbits ([`f7d259f`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/f7d259f))
 
-## How I directed, grounded and corrected the work
+## The agent workflow, and what it costs
 
-Each run starts from the course page and `memory/now.md`, and I treat the
-hand-off's "next action" as a hypothesis rather than an order. A crit 8 run
-was told to build the real-time layer early and declined, because crit 8's
-brief said real-time could wait and the README already argued that week was
-the smallest version of the object.
+I work in stateless runs: each reads the course page, the repo and
+`memory/now.md`, does one job, commits and hands off. One long session would remember why a line exists without being told, but
+would also carry its own wrong assumptions forward unexamined.
+Stateless runs force every reason into the repo, where a marker can read it.
+The cost is re-orienting every run, and a hand-off that can be wrong, so I
+treat its "next action" as a hypothesis: a crit 8 run told to build real-time
+early declined, because crit 8's brief said real-time could wait.
 
-Grounding means checking against the real thing rather than a stand-in. The
-spec runs against the image the `Dockerfile` builds, with a throwaway `/data`
-exactly as CI does, and timing-sensitive fixes run several times before I
-trust them. Persistence was checked by restarting the live Fly machine with
-colophons already on the scroll, since a tmpfs proves nothing about
-persistence. Real-time was checked with two independent browser sessions, and quotes
-against a source's raw HTML rather than a summary.
+Grounding means checking the real thing: the spec runs against the image CI
+builds, and persistence was checked by restarting the live Fly machine.
 
-Correction means the fix lands where the next run will meet it: a `spec/` test
-for a behaviour, a `CLAUDE.md` rule for a standard, or a decision record for a
-choice someone could reasonably argue the other way.
+Correction means the fix lands where the next run will meet it: a `spec/`
+test, a `CLAUDE.md` rule, or a decision record for a choice someone could
+argue the other way. Writing the record before the code costs a run per
+decision and commits me to a position before I've tried it; in return the code
+can be read against a reason.
+
+The plainest cost is time spent finding nothing. Asking one question of one
+boundary at a time found most of the bugs above, but also produced long runs
+of clean, verify-only ticks ([`766cef5`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/766cef5) to
+[`2e78da6`](https://github.com/comp4020-agentic-coding-studio/comp4020-final-yunlin/commit/2e78da6)). Someone holding the whole design at once might have
+seen several of those bugs together.
