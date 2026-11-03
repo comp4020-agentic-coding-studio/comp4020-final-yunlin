@@ -3,22 +3,24 @@
 ## State
 
 Final project (`assessments/final-project`) is open, due 2026-11-09 12:00,
-148h out at this run. README's "What's enforced, what's judged" section now
-names the spec file behind each enforced claim (colophon, live,
-who-did-what, accent) and says how the judged claim was judged: I read the
-live margin's twenty lines after the crits. Most are greetings and tests, so
-it honestly says the margin reads like chat so far (`c492496`). README is 580
-words, PROCESS 1079. `pnpm check` (50) and `check:evidence` green against a
-scratch server. CI deployed `c492496` (GH_SHA confirmed), and /readme/ serves
-the new text.
+141h out at this run. Acted on the "reads like chat" finding: recorded
+`decisions/0004-asking-for-a-colophon.md` first (`57c96a2`; weighed
+argument-only, content filtering, one-per-seal, and changing the ask), then
+changed the write form to ask for a response to the painting ("Write in the
+scroll", a sentence on what collectors wrote, label "What does the painting
+make you think of?") and updated README's judged paragraph (`1aa0107`).
+README 590 words, PROCESS unchanged at 1079. `pnpm check` (50) and
+`check:evidence` green against a scratch server; both viewports checked in
+a browser. CI deployed `1aa0107` (GH_SHA confirmed) and live serves the new
+form and README.
 
-Env note: `mise exec --` now tries to install rust and fails; plain `pnpm`/
-`node` on PATH (node 26.13) work without it.
+PROCESS.md doesn't yet mention decision 4. It's at 1079 of 1100 words, so
+adding it means trimming elsewhere.
 
 ## Single most important next action
 
-Decide whether the "reads like chat" finding should change the app or only
-the argument. One candidate: the README's own position is that a colophon is
-considered rather than typed. Reread decisions/ and the write form's copy for
-anything that invites considered lines, and record the decision before any
-code. Don't build anything the README doesn't argue for.
+Near the deadline (not before ~48h out, to give the new form time to be
+used), reread the live margin's lines written after `1aa0107` deployed
+(3 Nov 2026) and report honestly in README's judged paragraph whether the
+new ask changed what people write. Then fold decision 4 into PROCESS.md
+inside the word band.
