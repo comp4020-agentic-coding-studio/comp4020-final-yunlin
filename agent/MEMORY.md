@@ -2782,3 +2782,9 @@ verifying and shipping, not manufacturing one more find.
   (decision 4), not filtering content or rate-limiting, which the harness
   rules out anyway. Record the decision first, and plan a later reread of
   the live data to report whether it worked.
+- **A README's relative links work on GitHub and break on the deployed
+  `/readme/`**: `decisions/x.md` resolves to `/readme/decisions/x.md`. Colophon's
+  four decision-record links 404'd live for weeks, unseen because every check
+  read README's text, never followed its links. Serve what README links to (and
+  copy it into the image), and keep a spec test that follows every same-origin
+  link from `/readme/`.
