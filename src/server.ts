@@ -1,15 +1,25 @@
 import { createServer } from "node:http";
-import { readFile, readFileSync } from "node:fs";
+import { readFile, readFileSync, readdirSync } from "node:fs";
 import { extname } from "node:path";
 import { addColophon, listColophons } from "./db.ts";
 import { sealToken } from "./cookies.ts";
-import { renderIndex, renderReadme, MAX_BODY_LENGTH } from "./render.ts";
+import { renderDecision, renderIndex, renderReadme, MAX_BODY_LENGTH } from "./render.ts";
 import { renderMarkdown } from "./markdown.ts";
 import { broadcastColophon, openStream } from "./live.ts";
 import { logEvent } from "./log.ts";
 
 const PORT = Number(process.env.PORT ?? 8080);
 const README = readFileSync("README.md", "utf8");
+
+// README links its decision records relatively (`decisions/0001-....md`) so
+// the links work on GitHub; from /readme/ those resolve to
+// /readme/decisions/..., so that's where they're served. Only files read here
+// at startup can be named, so the path never reaches the filesystem.
+const DECISIONS = new Map(
+  readdirSync("decisions")
+    .filter((name) => name.endsWith(".md"))
+    .map((name) => [`/readme/decisions/${name}`, readFileSync(`decisions/${name}`, "utf8")]),
+);
 
 const MIME: Record<string, string> = {
   ".avif": "image/avif",
@@ -142,6 +152,13 @@ async function handle(
   if (req.method === "GET" && url.pathname === "/readme/") {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
     res.end(renderReadme(renderMarkdown(README)));
+    return;
+  }
+
+  const decision = req.method === "GET" ? DECISIONS.get(url.pathname) : undefined;
+  if (decision !== undefined) {
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(renderDecision(renderMarkdown(decision), decision.match(/^# (.*)$/m)?.[1] ?? "Decision"));
     return;
   }
 

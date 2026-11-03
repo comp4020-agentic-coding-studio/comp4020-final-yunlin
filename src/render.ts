@@ -129,3 +129,16 @@ export function renderReadme(html: string): string {
   `;
   return layout("About — Colophon", body);
 }
+
+export function renderDecision(html: string, title: string): string {
+  const body = `
+    <header class="site-header">
+      <h1><a href="/">Colophon</a></h1>
+      <p class="kicker"><a href="/readme/">what good means here</a></p>
+    </header>
+    <main class="prose">
+      ${html}
+    </main>
+  `;
+  return layout(`${title} — Colophon`, body);
+}
