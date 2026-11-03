@@ -2776,3 +2776,9 @@ verifying and shipping, not manufacturing one more find.
   mostly greetings and test lines, so the README now says it reads like chat
   so far. An honest negative is still evidence of judging; "for the reader to
   judge" isn't.
+- **When a judged claim fails, check the copy before adding mechanism.**
+  Colophon's margin read like chat partly because the form was a blank box
+  that never mentioned the painting. The fix was changing what the form asks
+  (decision 4), not filtering content or rate-limiting, which the harness
+  rules out anyway. Record the decision first, and plan a later reread of
+  the live data to report whether it worked.
