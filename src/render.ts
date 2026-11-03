@@ -79,8 +79,9 @@ export function renderIndex(
       <section aria-labelledby="colophons-heading">
         <h2 id="colophons-heading">Colophons</h2>
         <p class="section-note">
-          Oldest first, the way a scroll unrolls. Yours is marked once it's here — nothing
-          you write can be edited or taken back, the same as ink.
+          Responses to the painting, oldest first, the way a scroll unrolls. Yours is
+          marked once it's here — nothing you write can be edited or taken back, the same
+          as ink.
         </p>
         <p class="presence" hidden>Looking now: <span class="presence-seals"></span></p>
         <ol class="colophon-list" data-last-id="${colophons.at(-1)?.id ?? 0}">
@@ -91,10 +92,15 @@ export function renderIndex(
       </section>
 
       <section aria-labelledby="write-heading">
-        <h2 id="write-heading">Add yours</h2>
+        <h2 id="write-heading">Write in the scroll</h2>
+        <p class="section-note">
+          Collectors who sat with a scroll wrote after it what they saw there, what it
+          called to mind, and who they looked at it with. Write to the painting, not to
+          the people reading.
+        </p>
         ${errorMessage ? `<p class="form-error" role="alert">${escapeHtml(errorMessage)}</p>` : ""}
         <form method="post" action="/colophons">
-          <label for="body">A line for the margin</label>
+          <label for="body">What does the painting make you think of?</label>
           <textarea id="body" name="body" rows="3" required aria-describedby="body-count">${escapeHtml(draft)}</textarea>
           <p class="form-count" id="body-count" data-max="${MAX_BODY_LENGTH}">Up to ${MAX_BODY_LENGTH} characters.</p>
           <button type="submit">Write it in</button>
