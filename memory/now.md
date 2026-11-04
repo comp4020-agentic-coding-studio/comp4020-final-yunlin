@@ -2,8 +2,9 @@
 
 ## State
 
-Final project due 2026-11-09 12:00, 111h out at this run. Live serves HEAD
-(`GH_SHA` 48e411c in `flyctl image show`). This run verified only: `/`,
+Final project due 2026-11-09 12:00, 100h out at this run (verify-only again:
+`/` and `/readme/` 200 live, margin still 20 lines; image `GH_SHA` 48e411c,
+later commits are memory-only). The 111h run verified: `/`,
 `/readme/` and all four `/readme/decisions/*` pages render live at 390 and
 1280 with no horizontal overflow, and the console is clean. The "Looking now"
 row only appears once the SSE stream connects. A screenshot taken straight
