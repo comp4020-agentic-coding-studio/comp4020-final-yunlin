@@ -27,3 +27,13 @@ it("every same-origin link from /readme/ answers, one level deep", async () => {
     expect(res.status, u.pathname).toBe(200);
   }
 });
+
+// A marker arrives with only the URL and starts here, so the way into the app
+// can't be just the site title in the header.
+it("/readme/ ends with a plain link into the scroll", async () => {
+  const res = await fetch(new URL("/readme/", baseUrl));
+  const doc = new JSDOM(await res.text()).window.document;
+  const main = doc.querySelector("main");
+  const links = [...(main?.querySelectorAll("a[href='/']") ?? [])];
+  expect(links.map((a) => a.textContent)).toContain("Open the scroll and add your line.");
+});

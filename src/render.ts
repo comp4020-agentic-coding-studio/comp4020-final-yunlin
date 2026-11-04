@@ -125,6 +125,7 @@ export function renderReadme(html: string): string {
     </header>
     <main class="prose">
       ${html}
+      <p><a href="/">Open the scroll and add your line.</a></p>
     </main>
   `;
   return layout("About — Colophon", body);
