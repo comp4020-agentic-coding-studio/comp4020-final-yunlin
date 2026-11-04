@@ -2788,3 +2788,7 @@ verifying and shipping, not manufacturing one more find.
   read README's text, never followed its links. Serve what README links to (and
   copy it into the image), and keep a spec test that follows every same-origin
   link from `/readme/`.
+- **Walk the marker's stated path, not just the app.** The brief says markers
+  arrive with only the URL and start at `/readme/`. Colophon's `/readme/` had no
+  way into the app except the header title. Add an explicit link at the end
+  and a spec test for it.
