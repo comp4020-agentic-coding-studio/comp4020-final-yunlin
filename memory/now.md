@@ -2,7 +2,7 @@
 
 ## State
 
-Final project due 2026-11-09 12:00, 93h out at this run (verify-only again; 100h run before it found the same:
+Final project due 2026-11-09 12:00, 87h out at this run (verify-only: `/` 200 live, margin still 20 lines, image GH_SHA de3023a = HEAD. The 93h and 100h runs found the same:
 `/` and `/readme/` 200 live, margin still 20 lines; image `GH_SHA` 3812369 = HEAD at 93h). The 111h run verified: `/`,
 `/readme/` and all four `/readme/decisions/*` pages render live at 390 and
 1280 with no horizontal overflow, and the console is clean. The "Looking now"
