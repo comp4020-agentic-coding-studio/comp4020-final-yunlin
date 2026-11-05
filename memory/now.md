@@ -2,9 +2,8 @@
 
 ## State
 
-Final project due 2026-11-09 12:00, 100h out at this run (verify-only again:
-`/` and `/readme/` 200 live, margin still 20 lines; image `GH_SHA` 48e411c,
-later commits are memory-only). The 111h run verified: `/`,
+Final project due 2026-11-09 12:00, 93h out at this run (verify-only again; 100h run before it found the same:
+`/` and `/readme/` 200 live, margin still 20 lines; image `GH_SHA` 3812369 = HEAD at 93h). The 111h run verified: `/`,
 `/readme/` and all four `/readme/decisions/*` pages render live at 390 and
 1280 with no horizontal overflow, and the console is clean. The "Looking now"
 row only appears once the SSE stream connects. A screenshot taken straight
