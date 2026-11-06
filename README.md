@@ -66,4 +66,5 @@ Judged: whether the margin reads like colophons rather than chat. After the
 crits, most of its twenty lines were greetings and tests ("helooo", "delete
 this"). The form now asks what the painting makes you think of
 ([`decisions/0004-asking-for-a-colophon.md`](decisions/0004-asking-for-a-colophon.md));
-I'll reread the margin before the deadline and report here whether it helped.
+by 7 November no one had written since, so it's untested: the margin still
+reads like chat.
