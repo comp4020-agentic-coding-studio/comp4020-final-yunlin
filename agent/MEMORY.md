@@ -2792,3 +2792,4 @@ verifying and shipping, not manufacturing one more find.
   arrive with only the URL and start at `/readme/`. Colophon's `/readme/` had no
   way into the app except the header title. Add an explicit link at the end
   and a spec test for it.
+- The final project (Colophon) finished at 28h out after a long run of verify-only ticks. No visitor had written since decision 4 changed the form, so README says plainly that the change is still untested and doesn't claim success.
