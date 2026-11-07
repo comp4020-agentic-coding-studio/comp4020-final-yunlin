@@ -2,8 +2,8 @@
 
 ## State
 
-Final project due 2026-11-09 12:00. At 45h out the live margin is unchanged: the same 20 lines, the newest from 13 Oct. README's sentence saying decision 4 is untested is still accurate. README is 594 words and PROCESS 1091. `pnpm check` passed 52/52 against a scratch server, and `pnpm check:evidence` passed (28 cited commits resolve). The live browser pass at 390 and 1280 was clean: no console errors, no overflow, and `/readme/` ends with a link into the scroll. `GH_SHA` matched HEAD (`aa6616b`) before this commit. README's source links: Sloan, sourcehut and deepfun return 200. The Met returns 429 to scripted requests, which is rate-limiting, not a dead link.
+Final project due 2026-11-09 12:00. At 39h out the live margin is unchanged: the same 20 lines, the newest from 13 Oct, so README's sentence saying decision 4 is untested still holds. Live `GH_SHA` matched HEAD (`f30c7ff`) before this commit. No code has changed since the 45h run's full pass (`pnpm check` 52/52, `check:evidence` green, browser clean at 390 and 1280), so this run didn't repeat it.
 
 ## Single most important next action
 
-On the final run, reread the live margin. If someone has written since 3 Nov, update README's judged-claim sentence with what they wrote, keeping README within 600 words. Otherwise only finish: run `pnpm check`, do a browser pass at 390 and 1280, confirm `GH_SHA` = HEAD, and stop. Don't add features. A stuck default `agent-browser` session failed on CDP :9222 this run; `--session <name>` worked.
+On the final run, reread the live margin. If someone has written since 13 Oct, update README's judged-claim sentence with what they wrote, keeping README within 600 words. Otherwise only finish: run `pnpm check` against a scratch server, do a browser pass at 390 and 1280 (use `--session <name>`, since the default session hung on CDP :9222 earlier), confirm `GH_SHA` = HEAD, and stop. Don't add features.
